@@ -1,15 +1,25 @@
 {
     "name": "loki-checkout/magento2-quote-address-extended",
     "version": "0.0.1",
-    "description": "N/A",
+    "description": "Store additional quote address data in a separate table and link it to the order address",
     "keywords": [
         "loki-checkout",
         "loki-checkout-category-other"
     ],
     "type": "magento2-module",
     "require": {
+        "loki-checkout/magento2-core": "^2.3",
+        "loki/magento2-components": "^2.2",
+        "loki/magento2-field-components": "^2.2",
         "magento/framework": "^103.0",
+<<<<<<< HEAD
         "magento/module-quote": "^101.2",
+=======
+        "magento/module-cron": "^100.4",
+        "magento/module-quote": "^101.2",
+        "magento/module-sales": "^103.0",
+        "psr/log": "^1.0 | ^2.0 | ^3.0",
+>>>>>>> 9526565 (WIP)
         "php": ">=8.2 <8.6"
     },
     "license": "OSL-3.0",

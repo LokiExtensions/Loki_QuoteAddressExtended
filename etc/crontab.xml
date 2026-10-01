@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="loki_quote_address_extended_delete_orphaned_rows" instance="Loki\QuoteAddressExtended\Cron\DeleteOrphanedRows" method="execute">
+            <schedule>35 3 * * *</schedule>
+        </job>
+    </group>
+</config>

@@ -2,6 +2,7 @@
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="loki_quote_address_extended" resource="default" engine="innodb" comment="Loki Quote Address Extended">
+<<<<<<< HEAD
         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
         <column xsi:type="int" name="quote_address_id" unsigned="true" nullable="false" identity="false"
                 comment="Quote Address ID"/>
@@ -11,13 +12,36 @@
                 comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
+=======
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="quote_address_id" unsigned="true" nullable="true" comment="Quote Address ID"/>
+        <column xsi:type="int" name="order_address_id" unsigned="true" nullable="true" comment="Order Address ID"/>
+        <column xsi:type="varchar" name="address_type" nullable="true" length="32" comment="Address Type"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+>>>>>>> 9526565 (WIP)
         </constraint>
         <constraint xsi:type="unique" referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID">
             <column name="quote_address_id"/>
         </constraint>
+<<<<<<< HEAD
         <constraint xsi:type="foreign"
                     referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID_QUOTE_ADDRESS_ADDRESS_ID"
                     table="loki_quote_address_extended" column="quote_address_id"
                     referenceTable="quote_address" referenceColumn="address_id" onDelete="CASCADE"/>
+=======
+        <constraint xsi:type="unique" referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_ORDER_ADDRESS_ID">
+            <column name="order_address_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID_QUOTE_ADDRESS_ADDRESS_ID"
+                    table="loki_quote_address_extended" column="quote_address_id"
+                    referenceTable="quote_address" referenceColumn="address_id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_ORDER_ADDRESS_ID_SALES_ORDER_ADDRESS_ENTITY_ID"
+                    table="loki_quote_address_extended" column="order_address_id"
+                    referenceTable="sales_order_address" referenceColumn="entity_id" onDelete="CASCADE"/>
+>>>>>>> 9526565 (WIP)
     </table>
 </schema>

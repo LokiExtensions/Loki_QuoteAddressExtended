@@ -13,7 +13,16 @@
     "skip_magento_versions": [],
     "skip_css_utils": false,
     "sequence": [
+<<<<<<< HEAD
         "Magento_Quote"
+=======
+        "LokiCheckout_Core",
+        "Loki_Components",
+        "Loki_FieldComponents",
+        "Magento_Cron",
+        "Magento_Quote",
+        "Magento_Sales"
+>>>>>>> 9526565 (WIP)
     ],
     "phpcs_severity": 10,
     "phpstan_level": 1
