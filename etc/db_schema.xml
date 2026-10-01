@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="loki_quote_address_extended" resource="default" engine="innodb" comment="Loki Quote Address Extended">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="quote_address_id" unsigned="true" nullable="false" identity="false"
+                comment="Quote Address ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID">
+            <column name="quote_address_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID_QUOTE_ADDRESS_ADDRESS_ID"
+                    table="loki_quote_address_extended" column="quote_address_id"
+                    referenceTable="quote_address" referenceColumn="address_id" onDelete="CASCADE"/>
+    </table>
+</schema>

@@ -12,7 +12,9 @@
     ],
     "skip_magento_versions": [],
     "skip_css_utils": false,
-    "sequence": [],
+    "sequence": [
+        "Magento_Quote"
+    ],
     "phpcs_severity": 10,
     "phpstan_level": 1
 }
