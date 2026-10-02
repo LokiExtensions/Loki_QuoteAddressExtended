@@ -2,16 +2,12 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Loki_QuoteAddressExtended">
         <sequence>
-<<<<<<< HEAD
-            <module name="Magento_Quote"/>
-=======
             <module name="LokiCheckout_Core"/>
             <module name="Loki_Components"/>
             <module name="Loki_FieldComponents"/>
             <module name="Magento_Cron"/>
             <module name="Magento_Quote"/>
             <module name="Magento_Sales"/>
->>>>>>> 9526565 (WIP)
         </sequence>
     </module>
 </config>

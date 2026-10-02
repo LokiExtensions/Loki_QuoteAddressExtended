@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Loki\QuoteAddressExtended\Test\Integration\Model;
+namespace Loki\QuoteAddressExtended\Test\Integration\Repository;
 
-use Loki\QuoteAddressExtended\Model\QuoteAddressExtendedRepository;
+use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote\Address;
@@ -37,7 +37,7 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
         $loadedByQuoteAddressId = $repository->getByQuoteAddressId($quoteAddressId);
         $this->assertSame($id, (int)$loadedByQuoteAddressId->getId());
 
-        $this->assertSame(1, $repository->getCollection()->addFieldToFilter('id', $id)->getSize());
+        $this->assertSame(1, $repository->getCollection()->addFieldToFilter('entity_id', $id)->getSize());
     }
 
     #[DbIsolation(true)]
@@ -63,7 +63,7 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
     }
 
     #[DbIsolation(true)]
-    public function testCascadeDeleteWithQuoteAddress(): void
+    public function testDeletingQuoteAddressUnsetsQuoteAddressId(): void
     {
         $repository = $this->getRepository();
         $quoteAddress = $this->createQuoteAddress();
@@ -72,8 +72,11 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
         $entity = $repository->create();
         $entity->setQuoteAddressId($quoteAddressId);
         $repository->save($entity);
+        $id = (int)$entity->getId();
 
         Bootstrap::getObjectManager()->get(QuoteAddressResource::class)->delete($quoteAddress);
+
+        $this->assertNull($repository->getById($id)->getQuoteAddressId());
 
         $this->expectException(NoSuchEntityException::class);
         $repository->getByQuoteAddressId($quoteAddressId);

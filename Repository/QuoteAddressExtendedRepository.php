@@ -8,6 +8,9 @@ use Exception;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtendedFactory;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended as QuoteAddressExtendedResource;
+use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\Collection;
+use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\CollectionFactory;
+use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Address as OrderAddress;
@@ -15,28 +18,39 @@ use Magento\Sales\Model\Order\Address as OrderAddress;
 class QuoteAddressExtendedRepository
 {
     public const RESERVED_COLUMNS = [
-        'entity_id',
-        'quote_address_id',
-        'order_address_id',
-        'address_type',
-        'created_at',
-        'updated_at',
+        QuoteAddressExtended::ENTITY_ID,
+        QuoteAddressExtended::QUOTE_ADDRESS_ID,
+        QuoteAddressExtended::ORDER_ADDRESS_ID,
+        QuoteAddressExtended::ADDRESS_TYPE,
+        QuoteAddressExtended::CREATED_AT,
+        QuoteAddressExtended::UPDATED_AT,
     ];
 
     public function __construct(
         private readonly QuoteAddressExtendedResource $resource,
-        private readonly QuoteAddressExtendedFactory $quoteAddressExtendedFactory
+        private readonly QuoteAddressExtendedFactory $quoteAddressExtendedFactory,
+        private readonly CollectionFactory $collectionFactory
     ) {
+    }
+
+    public function create(): QuoteAddressExtended
+    {
+        return $this->quoteAddressExtendedFactory->create();
+    }
+
+    public function getById(int $id): QuoteAddressExtended
+    {
+        return $this->getByField(QuoteAddressExtendedResource::PRIMARY_KEY, $id);
     }
 
     public function getByQuoteAddressId(int $quoteAddressId): QuoteAddressExtended
     {
-        return $this->getByField('quote_address_id', $quoteAddressId);
+        return $this->getByField(QuoteAddressExtended::QUOTE_ADDRESS_ID, $quoteAddressId);
     }
 
     public function getByOrderAddressId(int $orderAddressId): QuoteAddressExtended
     {
-        return $this->getByField('order_address_id', $orderAddressId);
+        return $this->getByField(QuoteAddressExtended::ORDER_ADDRESS_ID, $orderAddressId);
     }
 
     public function getByOrderAddress(OrderAddress $orderAddress): QuoteAddressExtended
@@ -66,7 +80,7 @@ class QuoteAddressExtendedRepository
         try {
             $quoteAddressExtended = $this->getByQuoteAddressId($quoteAddressId);
         } catch (NoSuchEntityException) {
-            $quoteAddressExtended = $this->quoteAddressExtendedFactory->create();
+            $quoteAddressExtended = $this->create();
             $quoteAddressExtended->setQuoteAddressId($quoteAddressId);
             return $quoteAddressExtended;
         }
@@ -80,7 +94,7 @@ class QuoteAddressExtendedRepository
 
     public function detachFromQuoteAddress(QuoteAddressExtended $quoteAddressExtended): QuoteAddressExtended
     {
-        $copy = $this->quoteAddressExtendedFactory->create();
+        $copy = $this->create();
         $copy->setData(array_diff_key($quoteAddressExtended->getData(), array_flip(self::RESERVED_COLUMNS)));
         $copy->setQuoteAddressId($quoteAddressExtended->getQuoteAddressId());
         $copy->setAddressType($quoteAddressExtended->getAddressType());
@@ -105,9 +119,26 @@ class QuoteAddressExtendedRepository
         return $quoteAddressExtended;
     }
 
+    public function delete(QuoteAddressExtended $quoteAddressExtended): void
+    {
+        try {
+            $this->resource->delete($quoteAddressExtended);
+        } catch (Exception $exception) {
+            throw new CouldNotDeleteException(
+                __('Could not delete the extended quote address data: %1', $exception->getMessage()),
+                $exception
+            );
+        }
+    }
+
+    public function getCollection(): Collection
+    {
+        return $this->collectionFactory->create();
+    }
+
     private function getByField(string $field, int $value): QuoteAddressExtended
     {
-        $quoteAddressExtended = $this->quoteAddressExtendedFactory->create();
+        $quoteAddressExtended = $this->create();
         if ($value > 0) {
             $this->resource->load($quoteAddressExtended, $value, $field);
         }

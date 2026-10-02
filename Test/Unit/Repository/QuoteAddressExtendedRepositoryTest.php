@@ -7,6 +7,7 @@ namespace Loki\QuoteAddressExtended\Test\Unit\Repository;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtendedFactory;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended as QuoteAddressExtendedResource;
+use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\CollectionFactory;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Address as OrderAddress;
@@ -139,7 +140,11 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
                 ->getMock()
         );
 
-        return new QuoteAddressExtendedRepository($resource, $factory);
+        return new QuoteAddressExtendedRepository(
+            $resource,
+            $factory,
+            $this->createMock(CollectionFactory::class)
+        );
     }
 
     private function createOrderAddress(int $orderAddressId, int $quoteAddressId): OrderAddress

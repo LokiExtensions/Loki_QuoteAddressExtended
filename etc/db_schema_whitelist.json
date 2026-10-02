@@ -1,30 +1,21 @@
 {
     "loki_quote_address_extended": {
         "column": {
-<<<<<<< HEAD
-            "id": true,
-            "quote_address_id": true,
-=======
             "entity_id": true,
             "quote_address_id": true,
             "order_address_id": true,
             "address_type": true,
->>>>>>> 9526565 (WIP)
             "created_at": true,
             "updated_at": true
         },
         "constraint": {
             "PRIMARY": true,
             "LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID": true,
-<<<<<<< HEAD
-            "LOKI_QUOTE_ADDR_EXTENDED_QUOTE_ADDR_ID_QUOTE_ADDR_ADDR_ID": true
-=======
             "LOKI_QUOTE_ADDRESS_EXTENDED_ORDER_ADDRESS_ID": true,
             "LOKI_QUOTE_ADDRESS_EXTENDED_QUOTE_ADDRESS_ID_QUOTE_ADDRESS_ADDRESS_ID": true,
             "LOKI_QUOTE_ADDRESS_EXTENDED_ORDER_ADDRESS_ID_SALES_ORDER_ADDRESS_ENTITY_ID": true,
             "LOKI_QUOTE_ADDR_EXTENDED_QUOTE_ADDR_ID_QUOTE_ADDR_ADDR_ID": true,
             "LOKI_QUOTE_ADDR_EXTENDED_ORDER_ADDR_ID_SALES_ORDER_ADDR_ENTT_ID": true
->>>>>>> 9526565 (WIP)
         }
     }
 }
