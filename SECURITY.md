@@ -4,7 +4,7 @@
 
 If you believe you've found a security vulnerability in this project, we encourage you to let us know.
 
-Please report it by emailing us at [security@yireo.com](mailto:security@yireo.com).
+Please report it by emailing us at [security@loki-extensions.com](mailto:security@loki-extensions.com).
 We take security seriously and will respond as quickly as possible.
 
 ## Bug Bounty Program
