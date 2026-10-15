@@ -168,6 +168,64 @@ class QuoteAddressExtendedFieldRepositoryTest extends TestCase
         $repository->saveValue('1');
     }
 
+    public function testSaveValueStoresNonScalarValueAsNull(): void
+    {
+        $this->checkoutState->method('getQuoteId')->willReturn(42);
+        $this->quote->method('getShippingAddress')->willReturn($this->createQuoteAddress(11, 'shipping'));
+        $quoteAddressExtended = $this->createQuoteAddressExtended(['example_address_field' => 'old']);
+        $this->quoteAddressExtendedRepository->method('getOrCreateByQuoteAddressId')->with(11)
+            ->willReturn($quoteAddressExtended);
+        $this->quoteAddressExtendedRepository->expects($this->once())->method('save');
+
+        $repository = $this->createRepository('loki-checkout.customer.example_address_field');
+        $repository->saveValue(['foo' => 'bar']);
+
+        $this->assertNull($quoteAddressExtended->getData('example_address_field'));
+        $this->assertSame('shipping', $quoteAddressExtended->getAddressType());
+    }
+
+    public function testSaveValueUsesFieldNameArgumentAsColumn(): void
+    {
+        $this->checkoutState->method('getQuoteId')->willReturn(42);
+        $this->quote->method('getShippingAddress')->willReturn($this->createQuoteAddress(11, 'shipping'));
+        $quoteAddressExtended = $this->createQuoteAddressExtended([]);
+        $this->quoteAddressExtendedRepository->method('getOrCreateByQuoteAddressId')
+            ->willReturn($quoteAddressExtended);
+
+        $repository = $this->createRepository(
+            'loki-checkout.customer.example_address_field',
+            ['field_name' => 'other_column']
+        );
+        $repository->saveValue('foobar');
+
+        $this->assertSame('foobar', $quoteAddressExtended->getData('other_column'));
+        $this->assertFalse($quoteAddressExtended->hasData('example_address_field'));
+    }
+
+    public function testSaveValueDoesNothingWhenQuoteAddressCannotBeSaved(): void
+    {
+        $this->checkoutState->method('getQuoteId')->willReturn(42);
+        $quoteAddress = $this->createQuoteAddress(0, 'shipping');
+        $this->quote->method('getShippingAddress')->willReturn($quoteAddress);
+        $this->quoteAddressResource->expects($this->once())->method('save')->with($quoteAddress);
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getOrCreateByQuoteAddressId');
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('save');
+
+        $repository = $this->createRepository('loki-checkout.customer.example_address_field');
+        $repository->saveValue('foobar');
+    }
+
+    public function testGetValueReturnsEmptyStringWithoutQuote(): void
+    {
+        $this->checkoutState->method('getQuoteId')->willReturn(0);
+        $this->checkoutState->expects($this->never())->method('getQuote');
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getByQuoteAddressId');
+
+        $repository = $this->createRepository('loki-checkout.customer.example_address_field');
+
+        $this->assertSame('', $repository->getValue());
+    }
+
     public function testSaveValueDoesNothingWithoutQuote(): void
     {
         $this->checkoutState->method('getQuoteId')->willReturn(0);

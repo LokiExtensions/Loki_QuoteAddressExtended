@@ -9,6 +9,8 @@ use Loki\QuoteAddressExtended\Model\QuoteAddressExtendedFactory;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended as QuoteAddressExtendedResource;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\CollectionFactory;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
+use Magento\Framework\Exception\CouldNotDeleteException;
+use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Address as OrderAddress;
 use PHPUnit\Framework\TestCase;
@@ -110,8 +112,100 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
         $this->assertSame(42, $quoteAddressExtended->getQuoteAddressId());
     }
 
-    private function createRepository(): QuoteAddressExtendedRepository
+    public function testGetByIdThrowsForInvalidIdWithoutLoading(): void
     {
+        $resource = $this->createMock(QuoteAddressExtendedResource::class);
+        $resource->expects($this->never())->method('load');
+
+        $this->expectException(NoSuchEntityException::class);
+
+        $this->createRepository($resource)->getById(0);
+    }
+
+    public function testGetByQuoteAddressIdThrowsForInvalidIdWithoutLoading(): void
+    {
+        $resource = $this->createMock(QuoteAddressExtendedResource::class);
+        $resource->expects($this->never())->method('load');
+
+        $this->expectException(NoSuchEntityException::class);
+
+        $this->createRepository($resource)->getByQuoteAddressId(-1);
+    }
+
+    public function testGetByIdReturnsRow(): void
+    {
+        $this->rows = [
+            ['entity_id' => 3, 'quote_address_id' => 42, 'order_address_id' => null],
+        ];
+
+        $quoteAddressExtended = $this->createRepository()->getById(3);
+
+        $this->assertSame(42, $quoteAddressExtended->getQuoteAddressId());
+    }
+
+    public function testSaveWrapsExceptions(): void
+    {
+        $resource = $this->createMock(QuoteAddressExtendedResource::class);
+        $resource->method('save')->willThrowException(new \Exception('Database error'));
+        $repository = $this->createRepository($resource);
+
+        $this->expectException(CouldNotSaveException::class);
+        $this->expectExceptionMessage('Database error');
+
+        $repository->save($repository->create());
+    }
+
+    public function testDeleteWrapsExceptions(): void
+    {
+        $resource = $this->createMock(QuoteAddressExtendedResource::class);
+        $resource->method('delete')->willThrowException(new \Exception('Database error'));
+        $repository = $this->createRepository($resource);
+
+        $this->expectException(CouldNotDeleteException::class);
+        $this->expectExceptionMessage('Database error');
+
+        $repository->delete($repository->create());
+    }
+
+    public function testDetachFromQuoteAddressCopiesCustomColumnsOnly(): void
+    {
+        $repository = $this->createRepository();
+        $original = $repository->create();
+        $original->setData([
+            'entity_id' => 2,
+            'quote_address_id' => 42,
+            'order_address_id' => 8,
+            'address_type' => 'billing',
+            'example_address_field' => 'foobar',
+            'created_at' => '2026-01-01 00:00:00',
+            'updated_at' => '2026-01-01 00:00:00',
+        ]);
+
+        $copy = $repository->detachFromQuoteAddress($original);
+
+        $this->assertNotSame($original, $copy);
+        $this->assertSame([
+            'example_address_field' => 'foobar',
+            'quote_address_id' => 42,
+            'address_type' => 'billing',
+        ], $copy->getData());
+
+        $this->assertNull($original->getQuoteAddressId());
+        $this->assertSame(8, $original->getOrderAddressId());
+        $this->assertCount(1, $this->savedRows);
+        $this->assertSame(2, (int)$this->savedRows[0]['entity_id']);
+    }
+
+    private function createRepository(?QuoteAddressExtendedResource $resource = null): QuoteAddressExtendedRepository
+    {
+        if ($resource instanceof QuoteAddressExtendedResource) {
+            return new QuoteAddressExtendedRepository(
+                $resource,
+                $this->createFactory(),
+                $this->createMock(CollectionFactory::class)
+            );
+        }
+
         $resource = $this->createMock(QuoteAddressExtendedResource::class);
         $resource->method('load')->willReturnCallback(
             function (QuoteAddressExtended $model, $value, $field) use ($resource) {
@@ -132,6 +226,15 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
             }
         );
 
+        return new QuoteAddressExtendedRepository(
+            $resource,
+            $this->createFactory(),
+            $this->createMock(CollectionFactory::class)
+        );
+    }
+
+    private function createFactory(): QuoteAddressExtendedFactory
+    {
         $factory = $this->createMock(QuoteAddressExtendedFactory::class);
         $factory->method('create')->willReturnCallback(
             fn () => $this->getMockBuilder(QuoteAddressExtended::class)
@@ -140,11 +243,7 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
                 ->getMock()
         );
 
-        return new QuoteAddressExtendedRepository(
-            $resource,
-            $factory,
-            $this->createMock(CollectionFactory::class)
-        );
+        return $factory;
     }
 
     private function createOrderAddress(int $orderAddressId, int $quoteAddressId): OrderAddress
