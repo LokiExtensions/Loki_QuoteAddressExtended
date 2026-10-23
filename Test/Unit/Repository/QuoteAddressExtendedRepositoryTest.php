@@ -7,6 +7,7 @@ namespace Loki\QuoteAddressExtended\Test\Unit\Repository;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtendedFactory;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended as QuoteAddressExtendedResource;
+use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\Collection;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended\CollectionFactory;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
 use Magento\Framework\Exception\CouldNotDeleteException;
@@ -130,6 +131,43 @@ class QuoteAddressExtendedRepositoryTest extends TestCase
         $this->expectException(NoSuchEntityException::class);
 
         $this->createRepository($resource)->getByQuoteAddressId(-1);
+    }
+
+    public function testGetByOrderAddressIdThrowsForInvalidIdWithoutLoading(): void
+    {
+        $resource = $this->createMock(QuoteAddressExtendedResource::class);
+        $resource->expects($this->never())->method('load');
+
+        $this->expectException(NoSuchEntityException::class);
+
+        $this->createRepository($resource)->getByOrderAddressId(0);
+    }
+
+    public function testGetByOrderAddressIdReturnsRow(): void
+    {
+        $this->rows = [
+            ['entity_id' => 4, 'quote_address_id' => null, 'order_address_id' => 7],
+        ];
+
+        $quoteAddressExtended = $this->createRepository()->getByOrderAddressId(7);
+
+        $this->assertSame(4, (int)$quoteAddressExtended->getData('entity_id'));
+        $this->assertSame(7, $quoteAddressExtended->getOrderAddressId());
+    }
+
+    public function testGetCollectionUsesFactory(): void
+    {
+        $collection = $this->createMock(Collection::class);
+        $collectionFactory = $this->createMock(CollectionFactory::class);
+        $collectionFactory->expects($this->once())->method('create')->willReturn($collection);
+
+        $repository = new QuoteAddressExtendedRepository(
+            $this->createMock(QuoteAddressExtendedResource::class),
+            $this->createFactory(),
+            $collectionFactory
+        );
+
+        $this->assertSame($collection, $repository->getCollection());
     }
 
     public function testGetByIdReturnsRow(): void

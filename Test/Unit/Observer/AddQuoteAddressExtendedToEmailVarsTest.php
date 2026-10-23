@@ -55,6 +55,39 @@ class AddQuoteAddressExtendedToEmailVarsTest extends TestCase
         $this->assertSame($billing, $transport->getData('loki_billing_address_extended'));
     }
 
+    public function testSkipsMissingBillingAddress(): void
+    {
+        $shippingAddress = $this->createOrderAddress();
+        $shipping = $this->createQuoteAddressExtended(['example_address_field' => 'shipping']);
+        $this->quoteAddressExtendedRepository->method('getByOrderAddress')->with($shippingAddress)
+            ->willReturn($shipping);
+
+        $transport = new DataObject(['order' => $this->createOrder($shippingAddress, null)]);
+        $this->createObserver()->execute($this->createEventObserver($transport));
+
+        $this->assertSame($shipping, $transport->getData('loki_shipping_address_extended'));
+        $this->assertFalse($transport->hasData('loki_billing_address_extended'));
+    }
+
+    public function testSkipsTransportThatIsNoDataObject(): void
+    {
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getByOrderAddress');
+
+        $transport = ['order' => $this->createOrder($this->createOrderAddress(), $this->createOrderAddress())];
+        $this->createObserver()->execute(new Observer(['event' => new Event(['transportObject' => $transport])]));
+    }
+
+    public function testSkipsOrderThatIsNoOrderModel(): void
+    {
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getByOrderAddress');
+
+        $transport = new DataObject(['order' => new DataObject(['entity_id' => 1])]);
+        $this->createObserver()->execute($this->createEventObserver($transport));
+
+        $this->assertFalse($transport->hasData('loki_shipping_address_extended'));
+        $this->assertFalse($transport->hasData('loki_billing_address_extended'));
+    }
+
     public function testSkipsTransportWithoutQuoteAddressExtended(): void
     {
         $this->quoteAddressExtendedRepository->method('getByOrderAddress')
