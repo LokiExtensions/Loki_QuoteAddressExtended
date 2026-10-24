@@ -1,0 +1,6 @@
+{
+  "ignore": [
+    "Loki_FieldComponents",
+    "loki/magento2-field-components"
+  ]
+}
