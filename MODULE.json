@@ -18,7 +18,8 @@
         "Loki_FieldComponents",
         "Magento_Cron",
         "Magento_Quote",
-        "Magento_Sales"
+        "Magento_Sales",
+        "Magento_Store"
     ],
     "phpcs_severity": "6",
     "phpstan_level": "1"
