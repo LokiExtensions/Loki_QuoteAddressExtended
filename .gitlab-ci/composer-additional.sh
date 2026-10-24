@@ -16,5 +16,6 @@ if [ "${CI_JOB_NAME}" = "playwright" ]; then
     hyva-themes/magento2-order-cancellation-webapi \
     hyva-themes/magento2-compat-module-fallback
 
+  composer config repositories.quote-address-extended-example vcs https://gitlab.yireo.com/loki-checkout/Loki_QuoteAddressExtendedExample.git
   composer require --no-update -- loki-checkout/magento2-quote-address-extended-example:@dev
 fi
