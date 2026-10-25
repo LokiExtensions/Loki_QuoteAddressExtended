@@ -24,11 +24,6 @@
         "yireo/magento2-integration-test-helper": "~0.0"
     },
     "license": "OSL-3.0",
-    "extra": {
-        "loki": {
-            "countries": []
-        }
-    },
     "autoload": {
         "files": [
             "registration.php"
