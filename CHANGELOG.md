@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 29 October 2026
+### Fixed
+- Declare `Magento_Store` and phpunit dependencies
+
 ### Added
-- Add table `loki_quote_address_extended` with model, resource model, collection and repository
 - Link extended quote address data to order addresses
 - Add cron job to delete orphaned rows
+
+## [0.0.1] - September 2026
+- Initial release

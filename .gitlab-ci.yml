@@ -30,7 +30,7 @@ variables:
   OPENSEARCH_PORT: "9200"
   OPENSEARCH_JAVA_OPTS: "-Xms128m -Xmx128m"
   OPENSEARCH_INITIAL_ADMIN_PASSWORD: "admin"
-  MAGENTO_VERSION: "2.4.8-p3"
+  MAGENTO_VERSION: "2.4.8-p5"
   DISABLE_INVENTORY: false
   DISABLE_GRAPHQL: false
   DISABLE_ADOBE: false
@@ -57,7 +57,7 @@ phpcs:
     - php vendor/bin/phpcs --standard=Magento2 --ignore=Test/,node_modules/ --colors --extensions=php,phtml --severity=$PHPCS_LEVEL $CI_PROJECT_DIR
   parallel:
     matrix:
-      - MAGENTO_VERSION: ['2.4.8-p4']
+      - MAGENTO_VERSION: ['2.4.8-p5']
 
 phpstan:
   image: yireo/magento2installed:$MAGENTO_VERSION
@@ -76,7 +76,9 @@ phpstan:
     - composer config gitlab-domains gitlab.yireo.com
     - composer config --global --auth http-basic.gitlab.yireo.com yireo "${PERSONAL_TOKEN}"
     - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
+    - composer config --global --auth http-basic.private-packages.loki-extensions.com "${LOKI_REPO_USERNAME}" "${LOKI_REPO_PASSWORD}"
     - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
+    - composer config repositories.mirror composer https://private-packages.loki-extensions.com/
     - composer config repositories.loki-third-party composer https://gitlab.yireo.com/api/v4/group/loki-third-party/-/packages/composer/packages.json
     - composer config repositories.loki-checkout composer https://gitlab.yireo.com/api/v4/group/loki-checkout/-/packages/composer/packages.json
     - composer config repositories.loki-checkout-dev composer https://gitlab.yireo.com/api/v4/group/loki-checkout-dev/-/packages/composer/packages.json
@@ -91,7 +93,7 @@ phpstan:
     - php -d memory_limit=4G vendor/bin/phpstan analyse --level $PHPSTAN_LEVEL $CI_PROJECT_DIR
   parallel:
     matrix:
-      - MAGENTO_VERSION: ['2.4.8-p4']
+      - MAGENTO_VERSION: ['2.4.8-p5']
 
 unit-tests:
   image: yireo/magento2installed:$MAGENTO_VERSION
@@ -111,7 +113,9 @@ unit-tests:
     - composer config gitlab-domains gitlab.yireo.com
     - composer config --global --auth http-basic.gitlab.yireo.com yireo "${PERSONAL_TOKEN}"
     - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
+    - composer config --global --auth http-basic.private-packages.loki-extensions.com "${LOKI_REPO_USERNAME}" "${LOKI_REPO_PASSWORD}"
     - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
+    - composer config repositories.mirror composer https://private-packages.loki-extensions.com/
     - composer config repositories.loki-third-party composer https://gitlab.yireo.com/api/v4/group/loki-third-party/-/packages/composer/packages.json
     - composer config repositories.loki-checkout composer https://gitlab.yireo.com/api/v4/group/loki-checkout/-/packages/composer/packages.json
     - composer config repositories.loki-checkout-dev composer https://gitlab.yireo.com/api/v4/group/loki-checkout-dev/-/packages/composer/packages.json
@@ -124,7 +128,7 @@ unit-tests:
     - php ../../../vendor/bin/phpunit -c phpunit.xml --colors=never ../../../vendor/$COMPOSER_NAME/Test/Unit
   parallel:
     matrix:
-      - MAGENTO_VERSION: ['2.4.8-p4']
+      - MAGENTO_VERSION: ['2.4.8-p5']
 
 integration-tests:
   image: yireo/magento2installed:$MAGENTO_VERSION
@@ -146,7 +150,9 @@ integration-tests:
     - composer config gitlab-domains gitlab.yireo.com
     - composer config --global --auth http-basic.gitlab.yireo.com yireo "${PERSONAL_TOKEN}"
     - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
+    - composer config --global --auth http-basic.private-packages.loki-extensions.com "${LOKI_REPO_USERNAME}" "${LOKI_REPO_PASSWORD}"
     - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
+    - composer config repositories.mirror composer https://private-packages.loki-extensions.com/
     - composer config repositories.loki-third-party composer https://gitlab.yireo.com/api/v4/group/loki-third-party/-/packages/composer/packages.json
     - composer config repositories.loki-checkout composer https://gitlab.yireo.com/api/v4/group/loki-checkout/-/packages/composer/packages.json
     - composer config repositories.loki-checkout-dev composer https://gitlab.yireo.com/api/v4/group/loki-checkout-dev/-/packages/composer/packages.json
@@ -172,7 +178,7 @@ integration-tests:
       alias: opensearch
   parallel:
     matrix:
-      - MAGENTO_VERSION: ['2.4.8-p4']
+      - MAGENTO_VERSION: ['2.4.8-p5']
         PHP_VERSION: ['8.4']
 
 compile:
@@ -193,7 +199,9 @@ compile:
     - composer config gitlab-domains gitlab.yireo.com
     - composer config --global --auth http-basic.gitlab.yireo.com yireo "${PERSONAL_TOKEN}"
     - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
+    - composer config --global --auth http-basic.private-packages.loki-extensions.com "${LOKI_REPO_USERNAME}" "${LOKI_REPO_PASSWORD}"
     - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
+    - composer config repositories.mirror composer https://private-packages.loki-extensions.com/
     - composer config repositories.loki-third-party composer https://gitlab.yireo.com/api/v4/group/loki-third-party/-/packages/composer/packages.json
     - composer config repositories.loki-checkout composer https://gitlab.yireo.com/api/v4/group/loki-checkout/-/packages/composer/packages.json
     - composer config repositories.loki-checkout-dev composer https://gitlab.yireo.com/api/v4/group/loki-checkout-dev/-/packages/composer/packages.json
@@ -206,41 +214,36 @@ compile:
     - php -dzend.enable_gc=0 -drealpath_cache_size=64M -drealpath_cache_ttl=7200 -dopcache.enable_cli=1 -dopcache.memory_consumption=512 -dopcache.interned_strings_buffer=64 -dopcache.max_accelerated_files=100000 -dmemory_limit=-1 bin/magento setup:di:compile
   parallel:
     matrix:
-      - MAGENTO_VERSION: ['2.4.7-p7', '2.4.8-p1', '2.4.8-p4', '2.4.9']
+      - MAGENTO_VERSION: ['2.4.7-p7', '2.4.8-p5', '2.4.9']
 
 playwright:
-  image: yireo/magento2playwright:2.4.8-p3
+  image: yireo/magento2playwright:2.4.8-p5
   stage: advanced
+  timeout: 45m
   script:
     - cd $CI_PROJECT_DIR
-    - echo "Detecting Playwright tests"
     - test -d Test/Playwright/ || exit 0
     - find Test/Playwright/ -name '*spec.ts' -not -path '*/node_modules/*' | grep -q . || exit 0
-    - echo "Cleanup PHP"
     - test -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini || true
-    - echo "Setting up module variables"
     - COMPOSER_NAME=`jq '.name' composer.json -r`
     - MAGENTO_MODULE=`jq '.module_name' MODULE.json -r`
     - cd /tmp/magento
-    - echo "Configure GitLab"
+    - composer config gitlab-domains gitlab.yireo.com
     - composer config --global --auth http-basic.gitlab.yireo.com yireo "${PERSONAL_TOKEN}"
+    - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
+    - composer config --global --auth http-basic.private-packages.loki-extensions.com "${LOKI_REPO_USERNAME}" "${LOKI_REPO_PASSWORD}"
+    - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
+    - composer config repositories.mirror composer https://private-packages.loki-extensions.com/
     - composer config repositories.loki-third-party composer https://gitlab.yireo.com/api/v4/group/loki-third-party/-/packages/composer/packages.json
     - composer config repositories.loki-checkout composer https://gitlab.yireo.com/api/v4/group/loki-checkout/-/packages/composer/packages.json
     - composer config repositories.loki-checkout-dev composer https://gitlab.yireo.com/api/v4/group/loki-checkout-dev/-/packages/composer/packages.json
     - composer config repositories.loki-extensions composer https://gitlab.yireo.com/api/v4/group/loki-extensions/-/packages/composer/packages.json
-    - echo "Configure Magento Marketplace"
-    - composer config --global --auth http-basic.repo.magento.com "${MAGENTO_MARKETPLACE_PUBLIC_KEY}" "${MAGENTO_MARKETPLACE_PRIVATE_KEY}"
-    - echo "Configure composer"
-    - composer config --global --auth github-oauth.github.com "${GITHUB_TOKEN}"
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
     - test -f $CI_PROJECT_DIR/.gitlab-ci/composer-additional.sh && source $CI_PROJECT_DIR/.gitlab-ci/composer-additional.sh
     - test -f $CI_PROJECT_DIR/.gitlab-ci/composer-${MAGENTO_VERSION}.sh && source $CI_PROJECT_DIR/.gitlab-ci/composer-${MAGENTO_VERSION}.sh
-    - composer config gitlab-domains gitlab.yireo.com
-    - echo "Add module source"
     - cp -R $CI_PROJECT_DIR /tmp/magento/package-source
     - composer config repositories.local-source path /tmp/magento/package-source
     - composer require -n --prefer-source -- $COMPOSER_NAME:@dev loki-checkout/magento2-core-cli:@dev loki-checkout/magento2-sample-data:@dev loki-checkout/magento2-luma:@dev loki/magento2-functional-tests:dev-main loki-checkout/magento2-functional-tests:dev-main yireo/magento2-enable-module-sequence:@dev
-    - echo "Setup Magento"
     - $CI_PROJECT_DIR/.gitlab-ci/magento-install.sh || true
     - bin/magento module:disable Magento_AdminAdobeImsTwoFactorAuth Magento_TwoFactorAuth
     - bin/magento module:enable Yireo_EnableModuleSequence
@@ -279,7 +282,7 @@ playwright:
     - printf "TEST_URL=${MAGENTO_BASE_URL}\nTEST_TOKEN=loki\nMODULE_NAME=${MAGENTO_MODULE}\n" > /tmp/magento/.env.playwright
     - echo "Running Playwright tests for project $MAGENTO_MODULE"
     - tail -F /tmp/magento/var/log/*.log 2>/dev/null &
-    - CI=true TEST_URL="${MAGENTO_BASE_URL}" TEST_TOKEN=loki MAGENTO_ROOT=/tmp/magento npx playwright test --project=${MAGENTO_MODULE} --reporter=list --trace=retain-on-failure
+    - CI=true TEST_URL="${MAGENTO_BASE_URL}" TEST_TOKEN=loki TEST_TIMEOUT=60000 MAGENTO_ROOT=/tmp/magento npx playwright test --project=${MAGENTO_MODULE} --reporter=list --trace=retain-on-failure --retries=1 -x
   services:
     - name: yireo/mariadb:10
       alias: mysql

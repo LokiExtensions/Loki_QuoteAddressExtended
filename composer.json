@@ -1,6 +1,6 @@
 {
     "name": "loki-checkout/magento2-quote-address-extended",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Store additional quote address data in a separate table and link it to the order address",
     "keywords": [
         "loki-checkout",
