@@ -1,7 +1,48 @@
 {
-    "modules": [],
+    "modules": [
+        "LokiCheckout_Core",
+        "Loki_Base",
+        "Loki_Components",
+        "Loki_CssUtils",
+        "Loki_FieldComponents",
+        "Magento_AdminNotification",
+        "Magento_Backend",
+        "Magento_Catalog",
+        "Magento_CatalogInventory",
+        "Magento_Checkout",
+        "Magento_CheckoutAgreements",
+        "Magento_Cms",
+        "Magento_Config",
+        "Magento_Cron",
+        "Magento_Csp",
+        "Magento_Customer",
+        "Magento_Directory",
+        "Magento_Eav",
+        "Magento_Indexer",
+        "Magento_Newsletter",
+        "Magento_Payment",
+        "Magento_Quote",
+        "Magento_Rule",
+        "Magento_Sales",
+        "Magento_SalesRule",
+        "Magento_SalesSequence",
+        "Magento_Shipping",
+        "Magento_Store",
+        "Magento_Tax",
+        "Magento_Theme",
+        "Magento_Ui",
+        "Magento_User",
+        "Magento_Variable",
+        "Magento_Vault",
+        "Magento_Widget",
+        "Yireo_CspUtilities"
+    ],
     "config": [],
-    "tests": [],
+    "tests": {
+        "unit": 72,
+        "integration": 40,
+        "functional": 6
+    },
     "module_name": "Loki_QuoteAddressExtended",
     "composer_name": "loki-checkout/magento2-quote-address-extended",
     "php_versions": [
@@ -22,5 +63,6 @@
         "Magento_Store"
     ],
     "phpcs_severity": "6",
-    "phpstan_level": "1"
+    "phpstan_level": "1",
+    "components": []
 }
