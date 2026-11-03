@@ -218,7 +218,7 @@ compile:
       - MAGENTO_VERSION: ['2.4.7-p7', '2.4.8-p5', '2.4.9']
 
 playwright:
-  image: yireo/magento2playwright:2.4.8-p5
+  image: yireo/magento2playwright:2.4.9
   stage: advanced
   timeout: 45m
   script:
@@ -243,7 +243,7 @@ playwright:
     - test -f $CI_PROJECT_DIR/.gitlab-ci/composer-${MAGENTO_VERSION}.sh && source $CI_PROJECT_DIR/.gitlab-ci/composer-${MAGENTO_VERSION}.sh
     - cp -R $CI_PROJECT_DIR /tmp/magento/package-source
     - composer config repositories.local-source path /tmp/magento/package-source
-    - composer require -n --prefer-source -- $COMPOSER_NAME:@dev loki-checkout/magento2-core-cli:@dev loki-checkout/magento2-sample-data:@dev loki-checkout/magento2-luma:@dev loki/magento2-functional-tests:dev-main loki-checkout/magento2-functional-tests:dev-main yireo/magento2-enable-module-sequence:@dev loki-checkout/magento2-hyva:@dev hyva-themes/magento2-default-theme-csp hyva-themes/magento2-theme-module hyva-themes/magento2-base-layout-reset hyva-themes/magento2-email-module hyva-themes/magento2-graphql-tokens hyva-themes/magento2-graphql-view-model hyva-themes/magento2-compat-module-fallback
+    - composer require -n --prefer-source --with-all-dependencies -- $COMPOSER_NAME:@dev loki-checkout/magento2-core-cli:@dev loki-checkout/magento2-sample-data:@dev loki-checkout/magento2-luma:@dev loki/magento2-functional-tests:dev-main loki-checkout/magento2-functional-tests:dev-main yireo/magento2-enable-module-sequence:@dev loki-checkout/magento2-hyva:@dev hyva-themes/magento2-default-theme-csp hyva-themes/magento2-theme-module hyva-themes/magento2-base-layout-reset hyva-themes/magento2-email-module hyva-themes/magento2-graphql-tokens hyva-themes/magento2-graphql-view-model hyva-themes/magento2-compat-module-fallback
     - $CI_PROJECT_DIR/.gitlab-ci/magento-install.sh || true
     - bin/magento module:disable Magento_AdminAdobeImsTwoFactorAuth Magento_TwoFactorAuth
     - bin/magento module:enable Yireo_EnableModuleSequence

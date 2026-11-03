@@ -10,6 +10,10 @@
  * a limited list of MIME types (lacking WebP, for instance), so existing files are left to the webserver instead.
  */
 
+if (str_starts_with((string)getenv('MAGENTO_BASE_URL'), 'https://')) {
+    $_SERVER['HTTPS'] = 'on';
+}
+
 $documentRoot = $_SERVER['DOCUMENT_ROOT'];
 $path = (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
