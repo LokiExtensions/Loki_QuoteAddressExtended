@@ -39,8 +39,8 @@
     ],
     "config": [],
     "tests": {
-        "unit": 199,
-        "integration": 95,
+        "unit": 231,
+        "integration": 98,
         "functional": 8
     },
     "module_name": "Loki_QuoteAddressExtended",
