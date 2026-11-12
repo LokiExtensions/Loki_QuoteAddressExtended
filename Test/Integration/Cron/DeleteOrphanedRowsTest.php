@@ -6,6 +6,7 @@ namespace Loki\QuoteAddressExtended\Test\Integration\Cron;
 
 use Loki\QuoteAddressExtended\Cron\DeleteOrphanedRows;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
+use Loki\QuoteAddressExtended\Model\ResourceModel\CustomerAddressExtended as CustomerAddressExtendedResource;
 use Loki\QuoteAddressExtended\Test\Integration\Trait\QuoteAddressExtendedTestTrait;
 use Magento\Catalog\Test\Fixture\Product as ProductFixture;
 use Magento\Checkout\Test\Fixture\SetBillingAddress as SetBillingAddressFixture;
@@ -13,6 +14,9 @@ use Magento\Checkout\Test\Fixture\SetDeliveryMethod as SetDeliveryMethodFixture;
 use Magento\Checkout\Test\Fixture\SetGuestEmail as SetGuestEmailFixture;
 use Magento\Checkout\Test\Fixture\SetPaymentMethod as SetPaymentMethodFixture;
 use Magento\Checkout\Test\Fixture\SetShippingAddress as SetShippingAddressFixture;
+use Magento\Customer\Test\Fixture\Customer as CustomerFixture;
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
 use Magento\Quote\Test\Fixture\GuestCart as GuestCartFixture;
 use Magento\TestFramework\Fixture\DataFixture;
@@ -31,6 +35,7 @@ use PHPUnit\Framework\TestCase;
     DataFixture(SetGuestEmailFixture::class, ['cart_id' => '$cart.id$']),
     DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
     DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+    DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'customer'),
 ]
 class DeleteOrphanedRowsTest extends TestCase
 {
@@ -61,5 +66,42 @@ class DeleteOrphanedRowsTest extends TestCase
         $this->assertEmpty($this->loadQuoteAddressExtended((int)$orphan->getId())->getId());
         $this->assertNotEmpty($this->loadQuoteAddressExtended((int)$linkedToOrder->getId())->getId());
         $this->assertNotEmpty($this->loadQuoteAddressExtended((int)$linkedToQuote->getId())->getId());
+    }
+
+    public function testDeletesOrphanedCustomerAddressRows(): void
+    {
+        $customerId = (int)DataFixtureStorageManager::getStorage()->get('customer')->getId();
+        $customerAddressId = $this->getCustomerAddressIds($customerId)[0];
+        $linkedRow = $this->saveCustomerAddressExtended($customerAddressId);
+        $orphanId = $this->insertOrphanedCustomerAddressRow();
+
+        Bootstrap::getObjectManager()->get(DeleteOrphanedRows::class)->execute();
+
+        $repository = $this->getCustomerAddressExtendedRepository();
+        $this->assertSame((int)$linkedRow->getId(), (int)$repository->getById((int)$linkedRow->getId())->getId());
+        $this->expectException(NoSuchEntityException::class);
+        $repository->getById($orphanId);
+    }
+
+    private function insertOrphanedCustomerAddressRow(): int
+    {
+        $resource = Bootstrap::getObjectManager()->get(ResourceConnection::class);
+        $connection = $resource->getConnection();
+        $table = $resource->getTableName(CustomerAddressExtendedResource::TABLE_NAME);
+        $nonExistingAddressId = (int)$connection->fetchOne(
+            'SELECT IFNULL(MAX(entity_id), 0) + 1000 FROM ' . $resource->getTableName('customer_address_entity')
+        );
+
+        $connection->query('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            $connection->insert($table, ['customer_address_id' => $nonExistingAddressId]);
+            $orphanId = (int)$connection->lastInsertId($table);
+        } finally {
+            $connection->query('SET FOREIGN_KEY_CHECKS = 1');
+        }
+
+        $this->assertGreaterThan(0, $orphanId);
+
+        return $orphanId;
     }
 }

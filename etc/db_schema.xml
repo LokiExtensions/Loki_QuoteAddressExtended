@@ -28,4 +28,24 @@
                     table="loki_quote_address_extended" column="order_address_id"
                     referenceTable="sales_order_address" referenceColumn="entity_id" onDelete="CASCADE"/>
     </table>
+    <table name="loki_customer_address_extended" resource="default" engine="innodb"
+           comment="Loki Customer Address Extended">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="customer_address_id" unsigned="true" nullable="false"
+                comment="Customer Address ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="LOKI_CUSTOMER_ADDRESS_EXTENDED_CUSTOMER_ADDRESS_ID">
+            <column name="customer_address_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="LOKI_CUSTOMER_ADDRESS_EXTENDED_CUSTOMER_ADDRESS_ID_CUSTOMER_ADDRESS_ENTITY_ENTITY_ID"
+                    table="loki_customer_address_extended" column="customer_address_id"
+                    referenceTable="customer_address_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
 </schema>

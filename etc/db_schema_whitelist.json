@@ -17,5 +17,18 @@
             "LOKI_QUOTE_ADDR_EXTENDED_QUOTE_ADDR_ID_QUOTE_ADDR_ADDR_ID": true,
             "LOKI_QUOTE_ADDR_EXTENDED_ORDER_ADDR_ID_SALES_ORDER_ADDR_ENTT_ID": true
         }
+    },
+    "loki_customer_address_extended": {
+        "column": {
+            "entity_id": true,
+            "customer_address_id": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "LOKI_CUSTOMER_ADDRESS_EXTENDED_CUSTOMER_ADDRESS_ID": true,
+            "LOKI_CSTR_ADDR_EXTENDED_CSTR_ADDR_ID_CSTR_ADDR_ENTT_ENTT_ID": true
+        }
     }
 }
