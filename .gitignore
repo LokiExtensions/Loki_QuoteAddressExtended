@@ -6,3 +6,4 @@
 .ai/
 node_modules/
 MEMORY.md
+.phpunit.result.cache
