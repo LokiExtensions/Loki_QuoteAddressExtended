@@ -47,17 +47,17 @@ class AddQuoteAddressExtendedToAddressFormat implements ObserverInterface
         try {
             $quoteAddressExtended = $this->quoteAddressExtendedRepository->getByOrderAddress($address);
         } catch (NoSuchEntityException) {
-            return [];
+            $quoteAddressExtended = null;
         }
 
         $values = [];
         foreach ($columns as $column) {
-            $value = $quoteAddressExtended->getData($column);
-            if ($value === null || $value === '' || $address->getData($column) !== null) {
+            if ($address->getData($column) !== null) {
                 continue;
             }
 
-            $values[$column] = (string)$value;
+            $value = $quoteAddressExtended?->getData($column);
+            $values[$column] = is_scalar($value) ? (string)$value : '';
         }
 
         return $values;

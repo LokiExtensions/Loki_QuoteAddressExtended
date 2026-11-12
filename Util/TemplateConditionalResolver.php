@@ -16,7 +16,7 @@ class TemplateConditionalResolver
         $placeholders = [];
 
         do {
-            $template = (string)preg_replace_callback(
+            $resolved = preg_replace_callback(
                 self::INNERMOST_BLOCK,
                 function (array $matches) use ($values, $placeholderPrefix, &$placeholders): string {
                     [$block, $directive, $variable, $body] = $matches;
@@ -36,6 +36,11 @@ class TemplateConditionalResolver
                 -1,
                 $count
             );
+            if (null === $resolved) {
+                break;
+            }
+
+            $template = $resolved;
         } while ($count > 0);
 
         while (str_contains($template, $placeholderPrefix)) {

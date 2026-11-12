@@ -46,7 +46,8 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
     private const COLUMN = 'loki_integration_test_format_field';
     private const TEMPLATES = [
         'customer/address_templates/html' => '{{var firstname}}<br />[{{var loki_integration_test_format_field}}]'
-            . '{{depend loki_integration_test_format_field}}<br />Has value{{/depend}}'
+            . '{{depend loki_integration_test_format_field}}<br />Has value'
+            . '{{depend company}} ({{var company}}){{/depend}}{{/depend}}'
             . '<br />[{{var order_address_id}}][{{var created_at}}]',
         'customer/address_templates/pdf' => '{{var firstname}}|[{{var loki_integration_test_format_field}}]|',
     ];
@@ -112,8 +113,8 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
         $pdf = (string)$this->createRenderer()->format($shippingAddress, 'pdf');
 
         $this->assertSame(
-            [self::COLUMN => 'shipping extended'],
-            $shippingAddress->getData(AddQuoteAddressExtendedToAddressFormat::DATA_KEY)
+            'shipping extended',
+            $shippingAddress->getData(AddQuoteAddressExtendedToAddressFormat::DATA_KEY)[self::COLUMN] ?? null
         );
         $this->assertStringContainsString((string)$shippingAddress->getFirstname() . '|[shipping extended]|', $pdf);
     }
@@ -152,7 +153,7 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
         $shippingAddress = $order->getShippingAddress();
         $shippingAddress->setData(self::COLUMN, 'order address value');
 
-        $this->createRenderer()->format($shippingAddress, 'html');
+        $this->createRenderer()->format($shippingAddress, 'pdf');
 
         $this->assertSame('order address value', $shippingAddress->getData(self::COLUMN));
     }
@@ -167,6 +168,8 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
         $this->assertNull($shippingAddress->getData(self::COLUMN));
         $this->assertStringContainsString('[]', $html);
         $this->assertStringNotContainsString('Has value', $html);
+        $this->assertStringNotContainsString('{{', $html);
+        $this->assertStringNotContainsString('}}', $html);
         $this->assertStringContainsString((string)$shippingAddress->getFirstname(), $html);
     }
 

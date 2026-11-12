@@ -16,6 +16,20 @@ class TemplateConditionalResolverTest extends TestCase
         $this->assertSame($expected, (new TemplateConditionalResolver())->resolve($template, $values));
     }
 
+    public function testKeepsTemplateWhenPcreFails(): void
+    {
+        $backtrackLimit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '1');
+        try {
+            $template = '{{depend a}}' . str_repeat('x', 1000) . '{{/depend}}';
+            $result = (new TemplateConditionalResolver())->resolve($template, ['a' => 'x']);
+        } finally {
+            ini_set('pcre.backtrack_limit', (string)$backtrackLimit);
+        }
+
+        $this->assertSame($template, $result);
+    }
+
     public static function provideTemplates(): array
     {
         return [
@@ -67,6 +81,22 @@ class TemplateConditionalResolverTest extends TestCase
             'case insensitive directives' => ['{{IF a}}yes{{ELSE}}no{{/IF}}', ['a' => ''], 'no'],
             'unbalanced block is kept' => ['{{depend a}}A', ['a' => 'x'], '{{depend a}}A'],
             'without blocks' => ['{{var a}}', ['a' => 'x'], '{{var a}}'],
+            'whitespace variants' => ['{{depend   a  }}A{{/depend }}{{if a }}B{{else }}C{{/if}}', ['a' => 'x'], 'AB'],
+            'multi-line body' => [
+                "{{depend a}}\nline 1\n{{if b}}x{{else}}line 2\n{{/if}}{{/depend}}",
+                ['a' => 'x', 'b' => ''],
+                "\nline 1\nline 2\n",
+            ],
+            'three nesting levels' => [
+                '{{depend a}}1{{if b}}2{{depend c}}3{{/depend}}{{else}}N{{/if}}{{/depend}}',
+                ['a' => 'x', 'b' => 'y', 'c' => ''],
+                '12',
+            ],
+            'empty known column with unknown nested block' => [
+                '{{depend a}}A{{depend company}}C{{/depend}}B{{/depend}}|{{var company}}',
+                ['a' => ''],
+                '|{{var company}}',
+            ],
         ];
     }
 }

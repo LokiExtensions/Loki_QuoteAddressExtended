@@ -45,7 +45,10 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
 
         $this->assertFalse($address->hasData('field_a'));
         $this->assertSame('address_c', $address->getData('field_c'));
-        $this->assertSame(['field_a' => 'extended_a'], $address->getData('loki_quote_address_extended_values'));
+        $this->assertSame(
+            ['field_a' => 'extended_a', 'field_b' => '', 'field_d' => ''],
+            $address->getData('loki_quote_address_extended_values')
+        );
         $this->assertFalse($address->hasDataChanges());
     }
 
@@ -84,7 +87,10 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
 
         $this->createObserver()->execute($this->createEventObserver($address));
 
-        $this->assertSame(['entity_id' => 7, 'loki_quote_address_extended_values' => []], $address->getData());
+        $this->assertSame(
+            ['entity_id' => 7, 'loki_quote_address_extended_values' => ['field_a' => '']],
+            $address->getData()
+        );
     }
 
     public function testSkipsWithoutColumns(): void
