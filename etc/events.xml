@@ -6,6 +6,10 @@
         <observer name="Loki_QuoteAddressExtended::copyQuoteAddressExtendedToCustomerAddress"
                   instance="Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedToCustomerAddress"/>
     </event>
+    <event name="sales_quote_merge_after">
+        <observer name="Loki_QuoteAddressExtended::copyQuoteAddressExtendedOnQuoteMerge"
+                  instance="Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedOnQuoteMerge"/>
+    </event>
     <event name="sales_quote_address_save_after">
         <observer name="Loki_QuoteAddressExtended::copyCustomerAddressExtendedToQuoteAddress"
                   instance="Loki\QuoteAddressExtended\Observer\CopyCustomerAddressExtendedToQuoteAddress"/>
