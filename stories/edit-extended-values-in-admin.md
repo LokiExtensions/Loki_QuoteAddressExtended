@@ -23,6 +23,12 @@ status: complete
 **Then** the value is stored in the row linked to the order address  
 **And** the row is created when it does not exist yet.
 
+### when-saving-the-extended-values-fails
+
+**Given** the order address was saved  
+**When** the extended values cannot be saved  
+**Then** a generic error message is shown and the error is logged.
+
 ### when-column-is-not-declared-or-reserved
 
 **Given** a posted column is not declared or is reserved  

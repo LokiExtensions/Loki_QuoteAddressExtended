@@ -19,6 +19,7 @@ use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Model\Order\Address as OrderAddress;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class SaveAdminOrderAddressExtendedTest extends TestCase
 {
@@ -26,6 +27,7 @@ class SaveAdminOrderAddressExtendedTest extends TestCase
     private OrderAddressRepositoryInterface&MockObject $orderAddressRepository;
     private RequestInterface&MockObject $request;
     private MessageManager&MockObject $messageManager;
+    private LoggerInterface&MockObject $logger;
     private array $fields = ['example_address_field' => 'Example', 'house_number' => 'House number'];
 
     protected function setUp(): void
@@ -34,6 +36,7 @@ class SaveAdminOrderAddressExtendedTest extends TestCase
         $this->orderAddressRepository = $this->createMock(OrderAddressRepositoryInterface::class);
         $this->request = $this->createMock(RequestInterface::class);
         $this->messageManager = $this->createMock(MessageManager::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
     }
 
     public function testSavesSubmittedValuesToExistingRow(): void
@@ -150,7 +153,14 @@ class SaveAdminOrderAddressExtendedTest extends TestCase
             ->willReturn($this->createQuoteAddressExtended(['entity_id' => 1, 'order_address_id' => 7]));
         $this->quoteAddressExtendedRepository->method('save')
             ->willThrowException(new CouldNotSaveException(__('Failure')));
-        $this->messageManager->expects($this->once())->method('addErrorMessage')->with('Failure');
+        $this->messageManager->expects($this->once())->method('addErrorMessage')->with(
+            'The address was saved, but the additional address information could not be saved.'
+        );
+        $this->logger->expects($this->once())->method('error')->with(
+            'Loki_QuoteAddressExtended: Could not save the additional address information',
+            $this->callback(fn (array $context) => $context['order_address_id'] === 7
+                && $context['exception'] instanceof CouldNotSaveException)
+        );
 
         $this->createObserver()->execute($this->createEventObserver());
     }
@@ -246,7 +256,8 @@ class SaveAdminOrderAddressExtendedTest extends TestCase
             $this->quoteAddressExtendedRepository,
             $this->orderAddressRepository,
             $this->request,
-            $this->messageManager
+            $this->messageManager,
+            $this->logger
         );
     }
 

@@ -16,6 +16,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\ManagerInterface as MessageManager;
 use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Model\Order\Address as OrderAddress;
+use Psr\Log\LoggerInterface;
 
 class SaveAdminOrderAddressExtended implements ObserverInterface
 {
@@ -24,7 +25,8 @@ class SaveAdminOrderAddressExtended implements ObserverInterface
         private readonly QuoteAddressExtendedRepository $quoteAddressExtendedRepository,
         private readonly OrderAddressRepositoryInterface $orderAddressRepository,
         private readonly RequestInterface $request,
-        private readonly MessageManager $messageManager
+        private readonly MessageManager $messageManager,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -64,7 +66,13 @@ class SaveAdminOrderAddressExtended implements ObserverInterface
         try {
             $this->quoteAddressExtendedRepository->save($quoteAddressExtended);
         } catch (CouldNotSaveException $exception) {
-            $this->messageManager->addErrorMessage($exception->getMessage());
+            $this->logger->error(
+                'Loki_QuoteAddressExtended: Could not save the additional address information',
+                ['order_address_id' => $orderAddress->getEntityId(), 'exception' => $exception]
+            );
+            $this->messageManager->addErrorMessage(
+                __('The address was saved, but the additional address information could not be saved.')
+            );
         }
     }
 
