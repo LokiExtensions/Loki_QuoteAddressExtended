@@ -16,6 +16,7 @@ use Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedToCustomerAddress
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
 use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
 use Magento\Quote\Test\Fixture\CustomerCart as CustomerCartFixture;
 use Magento\TestFramework\Fixture\DataFixture;
@@ -171,7 +172,7 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
 
     #[
         DataFixture(ProductFixture::class, as: 'product'),
-        DataFixture(CustomerFixture::class, as: 'customer'),
+        DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'customer'),
         DataFixture(CustomerCartFixture::class, ['customer_id' => '$customer.id$'], as: 'cart'),
         DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product.id$', 'qty' => 1]),
         DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
@@ -179,8 +180,10 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
         DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
         DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
     ]
-    public function testAddressesNotSavedInAddressBookAreNotCopied(): void
+    public function testExistingAddressBookRowIsNotOverwrittenWithoutSaveInAddressBook(): void
     {
+        $customerAddressId = $this->getCustomerAddressIds($this->getCustomerId())[0];
+        $this->saveCustomerAddressExtended($customerAddressId, [self::SHARED_COLUMN => 'address book value']);
         $cartId = $this->getCartId();
         $this->saveQuoteAddressExtended($this->getShippingAddressId($cartId), [
             'address_type' => 'shipping',
@@ -191,18 +194,20 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
             self::SHARED_COLUMN => 'billing value',
         ]);
 
-        $this->placeOrder($cartId);
-
-        $collection = $this->getCustomerAddressExtendedRepository()->getCollection();
-        $customerAddressIds = $this->getCustomerAddressIds($this->getCustomerId());
-        if ([] !== $customerAddressIds) {
-            $collection->addFieldToFilter('customer_address_id', ['in' => $customerAddressIds]);
-            $collection->addFieldToFilter(self::SHARED_COLUMN, ['notnull' => true]);
-            $this->assertCount(0, $collection);
-            return;
+        $quote = $this->getQuote($cartId);
+        $quoteAddressResource = Bootstrap::getObjectManager()->get(QuoteAddressResource::class);
+        foreach ([$quote->getShippingAddress(), $quote->getBillingAddress()] as $quoteAddress) {
+            $quoteAddress->setCustomerAddressId($customerAddressId)
+                ->setCustomerId($this->getCustomerId())
+                ->setSaveInAddressBook(0);
+            $quoteAddressResource->save($quoteAddress);
         }
 
-        $this->assertSame([], $customerAddressIds);
+        $this->placeOrder($cartId);
+
+        $this->assertSame([$customerAddressId], $this->getCustomerAddressIds($this->getCustomerId()));
+        $row = $this->getCustomerAddressExtendedRepository()->getByCustomerAddressId($customerAddressId);
+        $this->assertSame('address book value', $row->getData(self::SHARED_COLUMN));
     }
 
     #[
