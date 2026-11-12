@@ -58,6 +58,7 @@
         "Loki_Components",
         "Loki_FieldComponents",
         "Magento_Cron",
+        "Magento_Customer",
         "Magento_Quote",
         "Magento_Sales",
         "Magento_Store"
