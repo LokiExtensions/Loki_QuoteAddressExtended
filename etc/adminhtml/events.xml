@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="admin_sales_order_address_update">
+        <observer name="Loki_QuoteAddressExtended::saveAdminOrderAddressExtended"
+                  instance="Loki\QuoteAddressExtended\Observer\SaveAdminOrderAddressExtended"/>
+    </event>
+</config>
