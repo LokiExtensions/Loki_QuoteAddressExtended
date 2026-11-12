@@ -207,7 +207,10 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
             ->willThrowException(new CouldNotSaveException(__('Failure')));
         $this->logger->expects($this->once())->method('error')->with(
             'Loki_QuoteAddressExtended: Could not copy extended quote address data to the customer address',
-            ['customer_address_id' => 5, 'quote_address_id' => 41, 'exception' => 'Failure']
+            $this->callback(fn (array $context) => array_diff_key($context, ['exception' => true])
+                === ['customer_address_id' => 5, 'quote_address_id' => 41]
+                && $context['exception'] instanceof \Exception
+                && $context['exception']->getMessage() === 'Failure')
         );
 
         $this->createObserver()->execute($this->createEventObserver($this->createQuote([

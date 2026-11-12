@@ -144,7 +144,10 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
             ->willThrowException(new CouldNotSaveException(__('Failure')));
         $this->logger->expects($this->once())->method('error')->with(
             'Loki_QuoteAddressExtended: Could not copy extended order address data to the admin quote',
-            ['order_address_id' => 7, 'quote_address_id' => 21, 'exception' => 'Failure']
+            $this->callback(fn (array $context) => array_diff_key($context, ['exception' => true])
+                === ['order_address_id' => 7, 'quote_address_id' => 21]
+                && $context['exception'] instanceof \Exception
+                && $context['exception']->getMessage() === 'Failure')
         );
 
         $this->createPlugin()->afterInitFromOrder(

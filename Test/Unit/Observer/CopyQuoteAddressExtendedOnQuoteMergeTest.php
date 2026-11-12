@@ -262,7 +262,10 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
             ->willThrowException(new CouldNotSaveException(__('Failure')));
         $this->logger->expects($this->exactly(2))->method('error')->with(
             'Loki_QuoteAddressExtended: Could not copy extended quote address data on quote merge',
-            ['quote_id' => 1, 'exception' => 'Failure']
+            $this->callback(fn (array $context) => array_diff_key($context, ['exception' => true])
+                === ['quote_id' => 1]
+                && $context['exception'] instanceof \Exception
+                && $context['exception']->getMessage() === 'Failure')
         );
 
         $this->createObserver()->execute($this->createEventObserver(
@@ -279,7 +282,10 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
         $this->quoteAddressExtendedRepository->expects($this->never())->method('getOrCreateByQuoteAddressId');
         $this->logger->expects($this->exactly(2))->method('error')->with(
             'Loki_QuoteAddressExtended: Could not copy extended quote address data on quote merge',
-            ['quote_id' => 1, 'exception' => 'Database error']
+            $this->callback(fn (array $context) => array_diff_key($context, ['exception' => true])
+                === ['quote_id' => 1]
+                && $context['exception'] instanceof \Exception
+                && $context['exception']->getMessage() === 'Database error')
         );
 
         $this->createObserver()->execute($this->createEventObserver(

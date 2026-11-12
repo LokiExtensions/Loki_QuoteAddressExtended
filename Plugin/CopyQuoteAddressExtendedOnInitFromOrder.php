@@ -70,7 +70,7 @@ class CopyQuoteAddressExtendedOnInitFromOrder
                 [
                     'order_address_id' => $orderAddress->getEntityId(),
                     'quote_address_id' => $quoteAddressId,
-                    'exception' => $exception->getMessage(),
+                    'exception' => $exception,
                 ]
             );
         }

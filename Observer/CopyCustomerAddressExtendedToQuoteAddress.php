@@ -93,7 +93,7 @@ class CopyCustomerAddressExtendedToQuoteAddress implements ObserverInterface
                 [
                     'customer_address_id' => $customerAddressId,
                     'quote_address_id' => $quoteAddressId,
-                    'exception' => $exception->getMessage(),
+                    'exception' => $exception,
                 ]
             );
         }

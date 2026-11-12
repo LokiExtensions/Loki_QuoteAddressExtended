@@ -82,7 +82,7 @@ class CopyQuoteAddressExtendedOnQuoteMerge implements ObserverInterface
         } catch (Exception $exception) {
             $this->logger->error(
                 'Loki_QuoteAddressExtended: Could not copy extended quote address data on quote merge',
-                ['quote_id' => $target->getId(), 'exception' => $exception->getMessage()]
+                ['quote_id' => $target->getId(), 'exception' => $exception]
             );
         }
     }
