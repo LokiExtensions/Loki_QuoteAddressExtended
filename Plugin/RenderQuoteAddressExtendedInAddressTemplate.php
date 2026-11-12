@@ -48,11 +48,11 @@ class RenderQuoteAddressExtendedInAddressTemplate
         $tokens = [];
         foreach ($values as $column => $value) {
             $token = $tokenPrefix . count($tokens) . 'X';
-            $format = (string)preg_replace(
+            $format = preg_replace(
                 '/\{\{var\s+' . $column . '(\s*\|[^}]*)?\s*\}\}/i',
                 $token,
                 $format
-            );
+            ) ?? $format;
             $tokens[$token] = (string)$value;
         }
 

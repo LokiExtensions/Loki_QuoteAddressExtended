@@ -52,6 +52,18 @@ class AddQuoteAddressExtendedToAddressFormatTest extends TestCase
         $this->assertFalse($address->hasDataChanges());
     }
 
+    public function testEmptyOrderAddressValueDoesNotHideExtendedValue(): void
+    {
+        $address = $this->createOrderAddress(['entity_id' => 7, 'field_a' => '']);
+        $this->extendedDataCopier->method('getQuoteAddressColumns')->willReturn(['field_a']);
+        $this->quoteAddressExtendedRepository->method('getByOrderAddress')
+            ->willReturn($this->createQuoteAddressExtended(['field_a' => 'extended_a']));
+
+        $this->createObserver()->execute($this->createEventObserver($address));
+
+        $this->assertSame(['field_a' => 'extended_a'], $address->getData('loki_quote_address_extended_values'));
+    }
+
     public function testKeepsValuesWhenAddressIsFormattedTwice(): void
     {
         $address = $this->createOrderAddress(['entity_id' => 7]);

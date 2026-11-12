@@ -52,7 +52,8 @@ class AddQuoteAddressExtendedToAddressFormat implements ObserverInterface
 
         $values = [];
         foreach ($columns as $column) {
-            if ($address->getData($column) !== null) {
+            $addressValue = $address->getData($column);
+            if ($addressValue !== null && $addressValue !== '') {
                 continue;
             }
 
