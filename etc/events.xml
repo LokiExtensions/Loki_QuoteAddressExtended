@@ -14,6 +14,10 @@
         <observer name="Loki_QuoteAddressExtended::copyCustomerAddressExtendedToQuoteAddress"
                   instance="Loki\QuoteAddressExtended\Observer\CopyCustomerAddressExtendedToQuoteAddress"/>
     </event>
+    <event name="customer_address_format">
+        <observer name="Loki_QuoteAddressExtended::addQuoteAddressExtendedToAddressFormat"
+                  instance="Loki\QuoteAddressExtended\Observer\AddQuoteAddressExtendedToAddressFormat"/>
+    </event>
     <event name="email_order_set_template_vars_before">
         <observer name="Loki_QuoteAddressExtended::addQuoteAddressExtendedToEmailVars"
                   instance="Loki\QuoteAddressExtended\Observer\AddQuoteAddressExtendedToEmailVars"/>
