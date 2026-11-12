@@ -15,7 +15,8 @@ status: complete
 **Given** an address template (for instance `customer/address_templates/html` or `pdf`) contains `{{var <column>}}`  
 **When** an order address with an extended value is rendered  
 **Then** the value is shown, HTML-escaped for the html format  
-**And** `{{depend <column>}}` and `{{if <column>}}` blocks are shown when the value is not empty.
+**And** `{{depend <column>}}` and `{{if <column>}}` blocks are shown when the value is not empty, with `{{else}}` shown otherwise  
+**And** nested `{{depend}}` and `{{if}}` blocks are resolved from the inside out.
 
 ### when-order-address-already-has-the-data
 
@@ -27,3 +28,4 @@ status: complete
 - `Test/Unit/Observer/AddQuoteAddressExtendedToAddressFormatTest.php`
 - `Test/Unit/Plugin/RenderQuoteAddressExtendedInAddressTemplateTest.php`
 - `Test/Integration/Observer/AddQuoteAddressExtendedToAddressFormatTest.php`
+- `Test/Unit/Util/TemplateConditionalResolverTest.php`

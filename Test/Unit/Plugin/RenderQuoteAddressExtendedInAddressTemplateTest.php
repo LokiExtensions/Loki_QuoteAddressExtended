@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Loki\QuoteAddressExtended\Test\Unit\Plugin;
 
 use Loki\QuoteAddressExtended\Plugin\RenderQuoteAddressExtendedInAddressTemplate;
+use Loki\QuoteAddressExtended\Util\TemplateConditionalResolver;
 use Magento\Customer\Block\Address\Renderer\DefaultRenderer;
 use Magento\Framework\DataObject;
 use Magento\Framework\Escaper;
@@ -62,6 +63,21 @@ class RenderQuoteAddressExtendedInAddressTemplateTest extends TestCase
         );
 
         $this->assertSame('[&lt;b&gt;A&lt;/b&gt;](B)', $result);
+    }
+
+    public function testResolvesNestedDirectivesBeforeRendering(): void
+    {
+        $this->mockType('html', true);
+
+        $result = $this->createPlugin()->aroundRenderArray(
+            $this->renderer,
+            fn (array $attributes, string $format) => $format,
+            ['loki_quote_address_extended_values' => ['field_a' => 'A&B']],
+            '{{if field_a}}{{depend field_a}}<{{var field_a}}>{{/depend}}{{else}}none{{/if}}'
+                . '{{depend company}}{{var company}}{{/depend}}'
+        );
+
+        $this->assertSame('<A&amp;B>{{depend company}}{{var company}}{{/depend}}', $result);
     }
 
     public function testDoesNotEscapeForPdf(): void
@@ -126,6 +142,6 @@ class RenderQuoteAddressExtendedInAddressTemplateTest extends TestCase
 
     private function createPlugin(): RenderQuoteAddressExtendedInAddressTemplate
     {
-        return new RenderQuoteAddressExtendedInAddressTemplate(new Escaper());
+        return new RenderQuoteAddressExtendedInAddressTemplate(new Escaper(), new TemplateConditionalResolver());
     }
 }

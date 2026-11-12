@@ -40,7 +40,7 @@ To display the value:
 - Frontend (current quote): `Loki\QuoteAddressExtended\ViewModel\CheckoutQuoteAddressExtendedView::getValue('example_address_field', 'auto')`
 - Admin order, invoice, shipment and credit memo pages: `Loki\QuoteAddressExtended\ViewModel\Adminhtml\OrderAddressExtendedView::getValue('example_address_field', 'auto')`
 - Order, invoice, shipment and credit memo emails: `{{var loki_shipping_address_extended.example_address_field}}` and `{{var loki_billing_address_extended.example_address_field}}`
-- Address templates (customer account, print views and PDFs, configured under **Stores > Configuration > Customers > Customer Configuration > Address Templates**): `{{var example_address_field}}`. The values are added to the order address data through the event `customer_address_format`, without overwriting existing order address data, and rendered by a plugin on `Magento\Customer\Block\Address\Renderer\DefaultRenderer::renderArray()` (HTML-escaped for the `html` format). `{{depend example_address_field}}` and `{{if example_address_field}}` are supported as well.
+- Address templates (customer account, print views and PDFs, configured under **Stores > Configuration > Customers > Customer Configuration > Address Templates**): `{{var example_address_field}}`. The values are added to the order address data through the event `customer_address_format`, without overwriting existing order address data, and rendered by a plugin on `Magento\Customer\Block\Address\Renderer\DefaultRenderer::renderArray()` (HTML-escaped for the `html` format). `{{depend example_address_field}}` and `{{if example_address_field}}...{{else}}...{{/if}}` are supported as well, also nested.
 
 ### Editing in the admin
 To make a column editable on the admin order address edit page, declare it with a label in your `etc/di.xml`:
@@ -63,7 +63,7 @@ The table `loki_customer_address_extended` holds one row per customer address (`
 - when a quote address gets a customer address, the values of the customer address are copied to the quote address (only when the quote address has no value yet); when the customer switches to another customer address, the values are replaced;
 - when an address is saved in the address book while placing an order (or the customer address has no row yet), the values of the quote address are copied to the customer address. With "same as billing", the values of the shipping address are used for the billing address.
 
-Only columns that exist in both tables are copied.
+Only columns that exist in both tables are copied, and only when the customer address belongs to the customer of the quote (never for guests).
 
 ### Other behaviour
 - When a guest logs in, the values of the guest quote are copied to the customer quote (per address type), when that address is still empty or uses the same customer address, and only for columns without a value.
