@@ -41,6 +41,12 @@ status: complete
 **When** the billing address is saved in the address book  
 **Then** the values of the shipping quote address are copied to the customer address.
 
+### when-customer-address-belongs-to-another-customer
+
+**Given** the quote address refers to a customer address of another customer, or the quote belongs to a guest  
+**When** the quote address is saved or the order is placed  
+**Then** no values are copied in either direction.
+
 ### when-column-exists-in-one-table-only
 
 **Given** a column exists in only one of the two tables  
@@ -56,3 +62,4 @@ status: complete
 - `Test/Integration/Observer/CopyCustomerAddressExtendedToQuoteAddressTest.php`
 - `Test/Integration/Observer/CopyQuoteAddressExtendedToCustomerAddressTest.php`
 - `Test/Integration/Repository/CustomerAddressExtendedRepositoryTest.php`
+- `Test/Unit/Util/CustomerAddressOwnershipTest.php`

@@ -8,6 +8,7 @@ use Loki\QuoteAddressExtended\Model\CustomerAddressExtended;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Repository\CustomerAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
+use Loki\QuoteAddressExtended\Util\CustomerAddressOwnership;
 use Loki\QuoteAddressExtended\Util\ExtendedDataCopier;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -23,6 +24,7 @@ class CopyQuoteAddressExtendedToCustomerAddress implements ObserverInterface
         private readonly CustomerAddressExtendedRepository $customerAddressExtendedRepository,
         private readonly QuoteAddressExtendedRepository $quoteAddressExtendedRepository,
         private readonly ExtendedDataCopier $extendedDataCopier,
+        private readonly CustomerAddressOwnership $customerAddressOwnership,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -38,10 +40,11 @@ class CopyQuoteAddressExtendedToCustomerAddress implements ObserverInterface
             return;
         }
 
+        $customerId = (int)$quote->getCustomerId();
         $shippingAddress = $quote->isVirtual() ? null : $quote->getShippingAddress();
         foreach ($quote->getAllAddresses() as $quoteAddress) {
             $fallbackAddress = $this->getFallbackAddress($quoteAddress, $shippingAddress);
-            $this->copyAddress($quoteAddress, $fallbackAddress);
+            $this->copyAddress($quoteAddress, $fallbackAddress, $customerId);
         }
     }
 
@@ -54,10 +57,14 @@ class CopyQuoteAddressExtendedToCustomerAddress implements ObserverInterface
         return $shippingAddress->getSameAsBilling() ? $shippingAddress : null;
     }
 
-    private function copyAddress(QuoteAddress $quoteAddress, ?QuoteAddress $fallbackAddress): void
+    private function copyAddress(QuoteAddress $quoteAddress, ?QuoteAddress $fallbackAddress, int $customerId): void
     {
         $customerAddressId = (int)$quoteAddress->getCustomerAddressId();
         if ($customerAddressId < 1) {
+            return;
+        }
+
+        if (false === $this->customerAddressOwnership->isOwnedBy($customerAddressId, $customerId)) {
             return;
         }
 

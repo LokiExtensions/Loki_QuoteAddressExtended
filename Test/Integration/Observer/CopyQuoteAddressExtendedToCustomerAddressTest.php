@@ -12,12 +12,16 @@ use Magento\Checkout\Test\Fixture\SetDeliveryMethod as SetDeliveryMethodFixture;
 use Magento\Checkout\Test\Fixture\SetPaymentMethod as SetPaymentMethodFixture;
 use Magento\Checkout\Test\Fixture\SetShippingAddress as SetShippingAddressFixture;
 use Magento\Customer\Test\Fixture\Customer as CustomerFixture;
+use Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedToCustomerAddress;
+use Magento\Framework\Event;
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
 use Magento\Quote\Test\Fixture\CustomerCart as CustomerCartFixture;
 use Magento\TestFramework\Fixture\DataFixture;
 use Magento\TestFramework\Fixture\DataFixtureStorageManager;
 use Magento\TestFramework\Fixture\DbIsolation;
+use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
 #[
@@ -199,6 +203,34 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
         }
 
         $this->assertSame([], $customerAddressIds);
+    }
+
+    #[
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerFixture::class, as: 'customer'),
+        DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'otherCustomer'),
+        DataFixture(CustomerCartFixture::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product.id$', 'qty' => 1]),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+    ]
+    public function testAddressOfAnotherCustomerIsNotChanged(): void
+    {
+        $cartId = $this->getCartId();
+        $this->saveQuoteAddressExtended($this->getShippingAddressId($cartId), [
+            'address_type' => 'shipping',
+            self::SHARED_COLUMN => 'shipping value',
+        ]);
+        $otherCustomerId = (int)DataFixtureStorageManager::getStorage()->get('otherCustomer')->getId();
+        $otherCustomerAddressId = $this->getCustomerAddressIds($otherCustomerId)[0];
+
+        $quote = $this->getQuote($cartId);
+        $quote->getShippingAddress()->setCustomerAddressId($otherCustomerAddressId)->setSaveInAddressBook(1);
+        Bootstrap::getObjectManager()->create(CopyQuoteAddressExtendedToCustomerAddress::class)
+            ->execute(new Observer(['event' => new Event(['quote' => $quote])]));
+
+        $this->expectException(NoSuchEntityException::class);
+        $this->getCustomerAddressExtendedRepository()->getByCustomerAddressId($otherCustomerAddressId);
     }
 
     private function getCustomerId(): int

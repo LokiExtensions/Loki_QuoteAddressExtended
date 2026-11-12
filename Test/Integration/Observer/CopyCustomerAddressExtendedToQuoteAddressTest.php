@@ -144,6 +144,27 @@ class CopyCustomerAddressExtendedToQuoteAddressTest extends TestCase
         $this->assertNull($repository->getByQuoteAddressId($quoteAddressId)->getData(self::SHARED_COLUMN));
     }
 
+    #[
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'customer'),
+        DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'otherCustomer'),
+        DataFixture(CustomerCartFixture::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product.id$']),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+    ]
+    public function testAddressOfAnotherCustomerIsNotCopied(): void
+    {
+        $otherCustomerId = (int)DataFixtureStorageManager::getStorage()->get('otherCustomer')->getId();
+        $otherCustomerAddressId = $this->getCustomerAddressIds($otherCustomerId)[0];
+        $this->saveCustomerAddressExtended($otherCustomerAddressId, [self::SHARED_COLUMN => 'other customer value']);
+
+        $quoteAddress = $this->linkShippingAddress($otherCustomerAddressId);
+
+        $this->expectException(NoSuchEntityException::class);
+        $this->getQuoteAddressExtendedRepository()->getByQuoteAddressId((int)$quoteAddress->getId());
+    }
+
     public function testCustomerOnlyColumnIsNotCopied(): void
     {
         $customerAddressId = $this->getCustomerAddressId();

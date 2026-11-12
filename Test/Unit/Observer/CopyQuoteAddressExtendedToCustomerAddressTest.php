@@ -9,6 +9,7 @@ use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedToCustomerAddress;
 use Loki\QuoteAddressExtended\Repository\CustomerAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
+use Loki\QuoteAddressExtended\Util\CustomerAddressOwnership;
 use Loki\QuoteAddressExtended\Util\ExtendedDataCopier;
 use Magento\Framework\DataObject;
 use Magento\Framework\Event;
@@ -26,6 +27,8 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
     private CustomerAddressExtendedRepository&MockObject $customerAddressExtendedRepository;
     private QuoteAddressExtendedRepository&MockObject $quoteAddressExtendedRepository;
     private ExtendedDataCopier&MockObject $extendedDataCopier;
+    private CustomerAddressOwnership&MockObject $customerAddressOwnership;
+    private bool $isOwned = true;
     private LoggerInterface&MockObject $logger;
 
     protected function setUp(): void
@@ -33,6 +36,8 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
         $this->customerAddressExtendedRepository = $this->createMock(CustomerAddressExtendedRepository::class);
         $this->quoteAddressExtendedRepository = $this->createMock(QuoteAddressExtendedRepository::class);
         $this->extendedDataCopier = $this->createMock(ExtendedDataCopier::class);
+        $this->customerAddressOwnership = $this->createMock(CustomerAddressOwnership::class);
+        $this->customerAddressOwnership->method('isOwnedBy')->willReturnCallback(fn () => $this->isOwned);
         $this->logger = $this->createMock(LoggerInterface::class);
     }
 
@@ -148,6 +153,19 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
         $this->createObserver()->execute($this->createEventObserver(
             $this->createQuote([$shippingAddress, $billingAddress], $shippingAddress)
         ));
+    }
+
+    public function testSkipsCustomerAddressOfAnotherCustomer(): void
+    {
+        $this->isOwned = false;
+        $this->extendedDataCopier->method('getSharedColumns')->willReturn(['example_address_field']);
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getByQuoteAddressId');
+        $this->customerAddressExtendedRepository->expects($this->never())->method('getOrCreateByCustomerAddressId');
+        $this->customerAddressExtendedRepository->expects($this->never())->method('save');
+
+        $this->createObserver()->execute($this->createEventObserver($this->createQuote([
+            $this->createQuoteAddress(41, 5, true),
+        ])));
     }
 
     public function testSkipsGuestQuote(): void
@@ -270,6 +288,7 @@ class CopyQuoteAddressExtendedToCustomerAddressTest extends TestCase
             $this->customerAddressExtendedRepository,
             $this->quoteAddressExtendedRepository,
             $this->extendedDataCopier,
+            $this->customerAddressOwnership,
             $this->logger
         );
     }

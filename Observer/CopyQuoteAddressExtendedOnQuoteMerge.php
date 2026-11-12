@@ -7,6 +7,7 @@ namespace Loki\QuoteAddressExtended\Observer;
 use Exception;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Util\AddressResolver;
+use Loki\QuoteAddressExtended\Util\CustomerAddressOwnership;
 use Loki\QuoteAddressExtended\Util\ExtendedDataCopier;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -22,6 +23,7 @@ class CopyQuoteAddressExtendedOnQuoteMerge implements ObserverInterface
         private readonly QuoteAddressExtendedRepository $quoteAddressExtendedRepository,
         private readonly AddressResolver $addressResolver,
         private readonly ExtendedDataCopier $extendedDataCopier,
+        private readonly CustomerAddressOwnership $customerAddressOwnership,
         private readonly QuoteAddressResource $quoteAddressResource,
         private readonly LoggerInterface $logger
     ) {
@@ -59,7 +61,7 @@ class CopyQuoteAddressExtendedOnQuoteMerge implements ObserverInterface
             return;
         }
 
-        if (false === $this->isSameOrEmptyAddress($sourceAddress, $targetAddress)) {
+        if (false === $this->isSameOrEmptyAddress($sourceAddress, $targetAddress, (int)$target->getCustomerId())) {
             return;
         }
 
@@ -85,11 +87,15 @@ class CopyQuoteAddressExtendedOnQuoteMerge implements ObserverInterface
         }
     }
 
-    private function isSameOrEmptyAddress(QuoteAddress $sourceAddress, QuoteAddress $targetAddress): bool
-    {
+    private function isSameOrEmptyAddress(
+        QuoteAddress $sourceAddress,
+        QuoteAddress $targetAddress,
+        int $customerId
+    ): bool {
         $targetCustomerAddressId = (int)$targetAddress->getCustomerAddressId();
         if ($targetCustomerAddressId > 0) {
-            return $targetCustomerAddressId === (int)$sourceAddress->getCustomerAddressId();
+            return $targetCustomerAddressId === (int)$sourceAddress->getCustomerAddressId()
+                && $this->customerAddressOwnership->isOwnedBy($targetCustomerAddressId, $customerId);
         }
 
         return [] === array_filter((array)$targetAddress->getStreet()) && !$targetAddress->getPostcode();

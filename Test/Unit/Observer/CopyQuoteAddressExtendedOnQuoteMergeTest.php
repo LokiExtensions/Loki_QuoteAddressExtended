@@ -8,6 +8,7 @@ use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Observer\CopyQuoteAddressExtendedOnQuoteMerge;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Util\AddressResolver;
+use Loki\QuoteAddressExtended\Util\CustomerAddressOwnership;
 use Loki\QuoteAddressExtended\Util\ExtendedDataCopier;
 use Magento\Framework\DataObject;
 use Magento\Framework\Event;
@@ -25,6 +26,8 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
 {
     private QuoteAddressExtendedRepository&MockObject $quoteAddressExtendedRepository;
     private ExtendedDataCopier&MockObject $extendedDataCopier;
+    private CustomerAddressOwnership&MockObject $customerAddressOwnership;
+    private bool $isOwned = true;
     private QuoteAddressResource&MockObject $quoteAddressResource;
     private LoggerInterface&MockObject $logger;
 
@@ -32,6 +35,8 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
     {
         $this->quoteAddressExtendedRepository = $this->createMock(QuoteAddressExtendedRepository::class);
         $this->extendedDataCopier = $this->createMock(ExtendedDataCopier::class);
+        $this->customerAddressOwnership = $this->createMock(CustomerAddressOwnership::class);
+        $this->customerAddressOwnership->method('isOwnedBy')->willReturnCallback(fn () => $this->isOwned);
         $this->quoteAddressResource = $this->createMock(QuoteAddressResource::class);
         $this->logger = $this->createMock(LoggerInterface::class);
     }
@@ -109,6 +114,25 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
         $this->createObserver()->execute($this->createEventObserver(
             $this->createQuote(1, $targetShipping, $targetBilling),
             $this->createQuote(2, $sourceShipping, $sourceBilling)
+        ));
+    }
+
+    public function testSkipsSameCustomerAddressOfAnotherCustomer(): void
+    {
+        $this->isOwned = false;
+        $this->quoteAddressExtendedRepository->method('getByQuoteAddressId')
+            ->willReturn($this->createQuoteAddressExtended(['entity_id' => 1]));
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('getOrCreateByQuoteAddressId');
+        $this->quoteAddressExtendedRepository->expects($this->never())->method('save');
+
+        $sourceShipping = $this->createQuoteAddress(11);
+        $sourceShipping->setData('customer_address_id', 5);
+        $targetShipping = $this->createQuoteAddress(21);
+        $targetShipping->setData('customer_address_id', 5);
+
+        $this->createObserver()->execute($this->createEventObserver(
+            $this->createQuote(1, $targetShipping, $this->createQuoteAddress(22)),
+            $this->createQuote(2, $sourceShipping, $this->createQuoteAddress(0))
         ));
     }
 
@@ -302,6 +326,7 @@ class CopyQuoteAddressExtendedOnQuoteMergeTest extends TestCase
             $this->quoteAddressExtendedRepository,
             new AddressResolver(),
             $this->extendedDataCopier,
+            $this->customerAddressOwnership,
             $this->quoteAddressResource,
             $this->logger
         );

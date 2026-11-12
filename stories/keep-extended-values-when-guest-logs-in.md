@@ -18,7 +18,7 @@ status: complete
 
 ### when-customer-quote-has-another-address
 
-**Given** the address of the customer quote is already filled in, or uses another customer address than the guest address  
+**Given** the address of the customer quote is already filled in, uses another customer address than the guest address, or uses a customer address that does not belong to the customer  
 **When** the quotes are merged  
 **Then** no values are copied.
 

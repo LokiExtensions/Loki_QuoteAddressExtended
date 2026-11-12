@@ -7,6 +7,7 @@ namespace Loki\QuoteAddressExtended\Observer;
 use Loki\QuoteAddressExtended\Model\CustomerAddressExtended;
 use Loki\QuoteAddressExtended\Repository\CustomerAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
+use Loki\QuoteAddressExtended\Util\CustomerAddressOwnership;
 use Loki\QuoteAddressExtended\Util\ExtendedDataCopier;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -23,6 +24,7 @@ class CopyCustomerAddressExtendedToQuoteAddress implements ObserverInterface
         private readonly CustomerAddressExtendedRepository $customerAddressExtendedRepository,
         private readonly QuoteAddressExtendedRepository $quoteAddressExtendedRepository,
         private readonly ExtendedDataCopier $extendedDataCopier,
+        private readonly CustomerAddressOwnership $customerAddressOwnership,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -49,6 +51,10 @@ class CopyCustomerAddressExtendedToQuoteAddress implements ObserverInterface
         }
 
         if ([] === $this->extendedDataCopier->getSharedColumns()) {
+            return;
+        }
+
+        if (false === $this->customerAddressOwnership->isOwnedByQuoteCustomer($customerAddressId, $quoteAddress)) {
             return;
         }
 
