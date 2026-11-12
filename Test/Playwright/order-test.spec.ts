@@ -3,12 +3,16 @@ import {setupCheckout} from '@loki/setup-checkout';
 import {test, expect} from '@loki/test';
 import moduleConfig, {FIELD_ID, themes, withTheme} from './config/config';
 import {
+    createCreditmemo,
     createInvoice,
+    createShipment,
     getAdminValueRow,
     getOrderId,
     loginAdmin,
+    openAdminCreditmemo,
     openAdminInvoice,
     openAdminOrder,
+    openAdminShipment,
     placeOrder,
 } from './helpers/order';
 
@@ -45,6 +49,37 @@ test.describe('Quote address extended order test', () => {
                 page.setCatchErrors(false);
                 await loginAdmin(page);
                 await openAdminInvoice(page, invoiceId);
+
+                const row = getAdminValueRow(page);
+                await expect(row).toHaveCount(1);
+                await expect(row.locator('td')).toHaveText(value);
+            });
+
+            test('should show the value on the admin shipment view', async ({page}) => {
+                const value = 'Shipment value ' + theme.name;
+                const incrementId = await placeOrder(page, value);
+                const orderId = await getOrderId(page, incrementId);
+                const shipmentId = await createShipment(page, orderId);
+
+                page.setCatchErrors(false);
+                await loginAdmin(page);
+                await openAdminShipment(page, shipmentId);
+
+                const row = getAdminValueRow(page);
+                await expect(row).toHaveCount(1);
+                await expect(row.locator('td')).toHaveText(value);
+            });
+
+            test('should show the value on the admin credit memo view', async ({page}) => {
+                const value = 'Credit memo value ' + theme.name;
+                const incrementId = await placeOrder(page, value);
+                const orderId = await getOrderId(page, incrementId);
+                await createInvoice(page, orderId);
+                const creditmemoId = await createCreditmemo(page, orderId);
+
+                page.setCatchErrors(false);
+                await loginAdmin(page);
+                await openAdminCreditmemo(page, creditmemoId);
 
                 const row = getAdminValueRow(page);
                 await expect(row).toHaveCount(1);

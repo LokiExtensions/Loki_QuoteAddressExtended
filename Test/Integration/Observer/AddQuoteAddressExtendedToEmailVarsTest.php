@@ -16,8 +16,12 @@ use Magento\Checkout\Test\Fixture\SetShippingAddress as SetShippingAddressFixtur
 use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
 use Magento\Quote\Test\Fixture\GuestCart as GuestCartFixture;
 use Magento\Sales\Model\Order\Email\Container\Template as TemplateContainer;
+use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Email\Sender\ShipmentSender;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\TestFramework\Fixture\AppArea;
 use Magento\TestFramework\Fixture\DataFixture;
 use Magento\TestFramework\Fixture\DataFixtureStorageManager;
@@ -63,6 +67,37 @@ class AddQuoteAddressExtendedToEmailVarsTest extends TestCase
         $invoice = $this->createInvoice($order);
 
         Bootstrap::getObjectManager()->get(InvoiceSender::class)->send($invoice, true);
+
+        $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::SHIPPING_TEMPLATE_VARIABLE, (int)$shipping->getId());
+        $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::BILLING_TEMPLATE_VARIABLE, (int)$billing->getId());
+    }
+
+    public function testShipmentEmailContainsShippingAndBillingVariables(): void
+    {
+        $cartId = $this->getCartId();
+        $shipping = $this->saveQuoteAddressExtended($this->getShippingAddressId($cartId), ['address_type' => 'shipping']);
+        $billing = $this->saveQuoteAddressExtended($this->getBillingAddressId($cartId), ['address_type' => 'billing']);
+        $order = $this->placeOrder($cartId);
+        $shipment = $this->createShipment($order);
+        $this->assertInstanceOf(Shipment::class, $shipment);
+
+        Bootstrap::getObjectManager()->get(ShipmentSender::class)->send($shipment, true);
+
+        $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::SHIPPING_TEMPLATE_VARIABLE, (int)$shipping->getId());
+        $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::BILLING_TEMPLATE_VARIABLE, (int)$billing->getId());
+    }
+
+    public function testCreditmemoEmailContainsShippingAndBillingVariables(): void
+    {
+        $cartId = $this->getCartId();
+        $shipping = $this->saveQuoteAddressExtended($this->getShippingAddressId($cartId), ['address_type' => 'shipping']);
+        $billing = $this->saveQuoteAddressExtended($this->getBillingAddressId($cartId), ['address_type' => 'billing']);
+        $order = $this->placeOrder($cartId);
+        $this->createInvoice($order);
+        $creditmemo = $this->createCreditmemo($order);
+        $this->assertInstanceOf(Creditmemo::class, $creditmemo);
+
+        Bootstrap::getObjectManager()->get(CreditmemoSender::class)->send($creditmemo, true);
 
         $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::SHIPPING_TEMPLATE_VARIABLE, (int)$shipping->getId());
         $this->assertTemplateVariable(AddQuoteAddressExtendedToEmailVars::BILLING_TEMPLATE_VARIABLE, (int)$billing->getId());

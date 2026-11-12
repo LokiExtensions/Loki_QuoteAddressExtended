@@ -99,6 +99,28 @@ export async function createInvoice(page: Page, orderId: number): Promise<number
     return invoiceId;
 }
 
+async function postOrderAction(page: Page, orderId: number, action: string, data: object): Promise<number> {
+    const token = await getAdminToken(page);
+    const response = await page.request.post('/rest/V1/order/' + orderId + '/' + action, {
+        headers: {Authorization: 'Bearer ' + token},
+        data,
+    });
+    expect(response.ok(), action + ': ' + await response.text()).toBeTruthy();
+
+    const entityId = parseInt(await response.json(), 10);
+    expect(entityId).toBeGreaterThan(0);
+
+    return entityId;
+}
+
+export async function createShipment(page: Page, orderId: number): Promise<number> {
+    return await postOrderAction(page, orderId, 'ship', {notify: false});
+}
+
+export async function createCreditmemo(page: Page, orderId: number): Promise<number> {
+    return await postOrderAction(page, orderId, 'refund', {notify: false});
+}
+
 export async function openAdminOrder(page: Page, orderId: number, incrementId: string) {
     await page.goto('/admin/sales/order/view/order_id/' + orderId + '/');
     await expect(page.locator('.page-title')).toContainText(incrementId);
@@ -106,6 +128,16 @@ export async function openAdminOrder(page: Page, orderId: number, incrementId: s
 
 export async function openAdminInvoice(page: Page, invoiceId: number) {
     await page.goto('/admin/sales/order_invoice/view/invoice_id/' + invoiceId + '/');
+    await expect(page.locator('.page-title')).toBeVisible();
+}
+
+export async function openAdminShipment(page: Page, shipmentId: number) {
+    await page.goto('/admin/admin/order_shipment/view/shipment_id/' + shipmentId + '/');
+    await expect(page.locator('.page-title')).toBeVisible();
+}
+
+export async function openAdminCreditmemo(page: Page, creditmemoId: number) {
+    await page.goto('/admin/sales/order_creditmemo/view/creditmemo_id/' + creditmemoId + '/');
     await expect(page.locator('.page-title')).toBeVisible();
 }
 

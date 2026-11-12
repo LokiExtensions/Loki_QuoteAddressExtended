@@ -61,12 +61,48 @@ class OrderAddressExtendedViewTest extends TestCase
         $this->assertSame('billing', $viewModel->getValue('address_type', 'billing'));
     }
 
+    public function testReturnsValuesForShipmentView(): void
+    {
+        $order = $this->placeOrderWithRows();
+        $shipment = $this->createShipment($order);
+
+        $viewModel = $this->createViewModel(['shipment_id' => $shipment->getEntityId()]);
+
+        $this->assertSame('shipping', $viewModel->getValue('address_type'));
+        $this->assertSame('billing', $viewModel->getValue('address_type', 'billing'));
+    }
+
+    public function testReturnsValuesForCreditmemoView(): void
+    {
+        $order = $this->placeOrderWithRows();
+        $this->createInvoice($order);
+        $creditmemo = $this->createCreditmemo($order);
+
+        $viewModel = $this->createViewModel(['creditmemo_id' => $creditmemo->getEntityId()]);
+
+        $this->assertSame('shipping', $viewModel->getValue('address_type'));
+        $this->assertSame('billing', $viewModel->getValue('address_type', 'billing'));
+    }
+
     public function testReturnsEmptyStringForUnknownOrderAndInvoice(): void
     {
         $this->placeOrderWithRows();
 
         $this->assertSame('', $this->createViewModel(['order_id' => 999999999])->getValue('address_type'));
         $this->assertSame('', $this->createViewModel(['invoice_id' => 999999999])->getValue('address_type'));
+        $this->assertSame('', $this->createViewModel(['shipment_id' => 999999999])->getValue('address_type'));
+        $this->assertSame('', $this->createViewModel(['creditmemo_id' => 999999999])->getValue('address_type'));
+    }
+
+    public function testIgnoresEntityParamsThatDoNotMatchTheCurrentPage(): void
+    {
+        $order = $this->placeOrderWithRows();
+        $invoice = $this->createInvoice($order);
+
+        $viewModel = $this->createViewModel(['order_id' => 999999999]);
+        Bootstrap::getObjectManager()->get(RequestInterface::class)->setParam('invoice_id', $invoice->getEntityId());
+
+        $this->assertSame('', $viewModel->getValue('address_type'));
         $this->assertSame('', $this->createViewModel([])->getValue('address_type'));
     }
 
@@ -83,8 +119,17 @@ class OrderAddressExtendedViewTest extends TestCase
     {
         $objectManager = Bootstrap::getObjectManager();
         $request = $objectManager->get(RequestInterface::class);
-        $request->setParams(['order_id' => null, 'invoice_id' => null]);
+        $request->setParams(['order_id' => null, 'invoice_id' => null, 'shipment_id' => null, 'creditmemo_id' => null]);
         $request->setParams($params);
+        [$routeName, $controllerName] = match (true) {
+            isset($params['invoice_id']) => ['sales', 'order_invoice'],
+            isset($params['shipment_id']) => ['adminhtml', 'order_shipment'],
+            isset($params['creditmemo_id']) => ['sales', 'order_creditmemo'],
+            default => ['sales', 'order'],
+        };
+        $request->setRouteName($routeName);
+        $request->setControllerName($controllerName);
+        $request->setActionName('view');
 
         return $objectManager->create(OrderAddressExtendedView::class);
     }

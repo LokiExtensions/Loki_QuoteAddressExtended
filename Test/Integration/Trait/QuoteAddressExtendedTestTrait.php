@@ -4,18 +4,27 @@ declare(strict_types=1);
 
 namespace Loki\QuoteAddressExtended\Test\Integration\Trait;
 
+use Loki\QuoteAddressExtended\Model\CustomerAddressExtended;
 use Loki\QuoteAddressExtended\Model\QuoteAddressExtended;
 use Loki\QuoteAddressExtended\Model\ResourceModel\QuoteAddressExtended as QuoteAddressExtendedResource;
+use Loki\QuoteAddressExtended\Repository\CustomerAddressExtendedRepository;
 use Loki\QuoteAddressExtended\Repository\QuoteAddressExtendedRepository;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\PaymentMethodManagementInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\CreditmemoRepositoryInterface;
+use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
+use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\InvoiceOrderInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\RefundOrderInterface;
+use Magento\Sales\Api\ShipmentRepositoryInterface;
+use Magento\Sales\Api\ShipOrderInterface;
 use Magento\Sales\Model\Order;
 use Magento\TestFramework\Helper\Bootstrap;
 
@@ -35,6 +44,22 @@ trait QuoteAddressExtendedTestTrait
         }
 
         return $repository->save($quoteAddressExtended);
+    }
+
+    protected function getCustomerAddressExtendedRepository(): CustomerAddressExtendedRepository
+    {
+        return $this->om()->get(CustomerAddressExtendedRepository::class);
+    }
+
+    protected function saveCustomerAddressExtended(int $customerAddressId, array $data = []): CustomerAddressExtended
+    {
+        $repository = $this->getCustomerAddressExtendedRepository();
+        $customerAddressExtended = $repository->getOrCreateByCustomerAddressId($customerAddressId);
+        foreach ($data as $key => $value) {
+            $customerAddressExtended->setData($key, $value);
+        }
+
+        return $repository->save($customerAddressExtended);
     }
 
     protected function loadQuoteAddressExtended(int $entityId): QuoteAddressExtended
@@ -69,6 +94,17 @@ trait QuoteAddressExtendedTestTrait
         return $quoteAddressId;
     }
 
+    protected function getCustomerAddressIds(int $customerId): array
+    {
+        $customer = $this->om()->create(CustomerRepositoryInterface::class)->getById($customerId);
+        $addressIds = [];
+        foreach ((array)$customer->getAddresses() as $address) {
+            $addressIds[] = (int)$address->getId();
+        }
+
+        return $addressIds;
+    }
+
     protected function placeOrder(int $cartId): Order
     {
         $paymentMethod = $this->om()->get(PaymentMethodManagementInterface::class)->get($cartId);
@@ -94,6 +130,20 @@ trait QuoteAddressExtendedTestTrait
         $invoiceId = $this->om()->get(InvoiceOrderInterface::class)->execute((int)$order->getEntityId());
 
         return $this->om()->create(InvoiceRepositoryInterface::class)->get((int)$invoiceId);
+    }
+
+    protected function createShipment(Order $order): ShipmentInterface
+    {
+        $shipmentId = $this->om()->get(ShipOrderInterface::class)->execute((int)$order->getEntityId());
+
+        return $this->om()->create(ShipmentRepositoryInterface::class)->get((int)$shipmentId);
+    }
+
+    protected function createCreditmemo(Order $order): CreditmemoInterface
+    {
+        $creditmemoId = $this->om()->get(RefundOrderInterface::class)->execute((int)$order->getEntityId());
+
+        return $this->om()->create(CreditmemoRepositoryInterface::class)->get((int)$creditmemoId);
     }
 
     private function om(): ObjectManagerInterface
