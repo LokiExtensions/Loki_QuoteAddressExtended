@@ -52,6 +52,11 @@ class ExtendedDataCopier
         return $this->copyValues($source, $target, $this->getQuoteAddressColumns(), false);
     }
 
+    public function copyOrderToQuoteAddressValues(QuoteAddressExtended $source, QuoteAddressExtended $target): bool
+    {
+        return $this->replaceValues($source, $target, $this->getQuoteAddressColumns());
+    }
+
     public function copyCustomerToQuoteAddressValues(
         CustomerAddressExtended $source,
         QuoteAddressExtended $target,

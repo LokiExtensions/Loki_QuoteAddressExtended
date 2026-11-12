@@ -14,7 +14,8 @@ status: complete
 
 **Given** an order with extended address values  
 **When** the admin starts a reorder or an order edit  
-**Then** the values are copied to the addresses of the new admin quote.
+**Then** the values are copied to the addresses of the new admin quote  
+**And** they replace values copied from the customer address book.
 
 ### when-admin-order-is-placed
 

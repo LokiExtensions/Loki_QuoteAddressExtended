@@ -18,6 +18,7 @@ use Magento\Framework\Registry;
 use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Test\Fixture\CustomerCart as CustomerCartFixture;
+use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Model\AdminOrder\Create;
 use Magento\Sales\Model\Order;
 use Magento\TestFramework\Fixture\AppArea;
@@ -94,6 +95,38 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
         $orderRow = $repository->getByOrderAddress($order->getShippingAddress());
         $this->assertSame((int)$originalShippingRow->getId(), (int)$orderRow->getId());
         $this->assertSame('order shipping', $orderRow->getData(self::COLUMN));
+    }
+
+    #[
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerFixture::class, ['addresses' => [[]]], as: 'customer'),
+        DataFixture(CustomerCartFixture::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product.id$', 'qty' => 1]),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+    ]
+    public function testOrderValuesWinOverAddressBookValues(): void
+    {
+        $order = $this->placeOrderWithRows();
+        $customerId = (int)DataFixtureStorageManager::getStorage()->get('customer')->getId();
+        $customerAddressId = $this->getCustomerAddressIds($customerId)[0];
+        $this->saveCustomerAddressExtended($customerAddressId, [self::COLUMN => 'address book value']);
+        $orderAddressRepository = Bootstrap::getObjectManager()->get(OrderAddressRepositoryInterface::class);
+        foreach ($order->getAddresses() as $orderAddress) {
+            $orderAddress->setCustomerAddressId($customerAddressId);
+            $orderAddressRepository->save($orderAddress);
+        }
+
+        $quote = $this->initFromOrder($order)->getQuote();
+
+        $this->assertSame($customerAddressId, (int)$quote->getShippingAddress()->getCustomerAddressId());
+        $repository = $this->getQuoteAddressExtendedRepository();
+        $shippingRow = $repository->getByQuoteAddressId((int)$quote->getShippingAddress()->getId());
+        $this->assertSame('order shipping', $shippingRow->getData(self::COLUMN));
+        $billingRow = $repository->getByQuoteAddressId((int)$quote->getBillingAddress()->getId());
+        $this->assertSame('order billing', $billingRow->getData(self::COLUMN));
     }
 
     public function testReorderWithoutRowsCreatesNothing(): void

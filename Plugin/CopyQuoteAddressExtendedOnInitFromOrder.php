@@ -58,7 +58,7 @@ class CopyQuoteAddressExtendedOnInitFromOrder
 
         try {
             $targetRow = $this->quoteAddressExtendedRepository->getOrCreateByQuoteAddressId($quoteAddressId);
-            if (false === $this->extendedDataCopier->copyQuoteAddressValues($sourceRow, $targetRow)) {
+            if (false === $this->extendedDataCopier->copyOrderToQuoteAddressValues($sourceRow, $targetRow)) {
                 return;
             }
 

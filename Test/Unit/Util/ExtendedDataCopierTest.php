@@ -172,6 +172,20 @@ class ExtendedDataCopierTest extends TestCase
         $this->assertFalse($this->createCopier()->copyCustomerToQuoteAddressValues($source, $target, true));
     }
 
+    public function testCopyOrderToQuoteAddressValuesReplacesAllQuoteColumns(): void
+    {
+        $this->setTables(['field_a', 'field_b', 'field_c'], ['field_a']);
+        $source = $this->createQuoteAddressExtended(['field_a' => 'order_a', 'field_b' => '']);
+        $target = $this->createQuoteAddressExtended(['field_a' => 'book_a', 'field_b' => 'book_b', 'field_c' => 'c']);
+
+        $this->assertTrue($this->createCopier()->copyOrderToQuoteAddressValues($source, $target));
+
+        $this->assertSame('order_a', $target->getData('field_a'));
+        $this->assertNull($target->getData('field_b'));
+        $this->assertNull($target->getData('field_c'));
+        $this->assertFalse($this->createCopier()->copyOrderToQuoteAddressValues($source, $target));
+    }
+
     public function testCopyQuoteToCustomerAddressValuesOverwritesSharedValues(): void
     {
         $this->setTables(['field_a', 'field_b', 'field_c', 'quote_only'], ['field_a', 'field_b', 'field_c']);

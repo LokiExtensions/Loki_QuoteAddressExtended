@@ -46,7 +46,7 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
             ->willReturnMap([[$shippingOrderAddress, $shippingSource], [$billingOrderAddress, $billingSource]]);
         $this->quoteAddressExtendedRepository->method('getOrCreateByQuoteAddressId')
             ->willReturnMap([[21, $shippingTarget], [22, $billingTarget]]);
-        $this->extendedDataCopier->expects($this->exactly(2))->method('copyQuoteAddressValues')
+        $this->extendedDataCopier->expects($this->exactly(2))->method('copyOrderToQuoteAddressValues')
             ->willReturnMap([[$shippingSource, $shippingTarget, true], [$billingSource, $billingTarget, true]]);
 
         $savedRows = [];
@@ -104,7 +104,7 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
             ->willReturn($this->createQuoteAddressExtended(['entity_id' => 1, 'quote_address_id' => 21]));
         $this->quoteAddressExtendedRepository->expects($this->once())->method('getOrCreateByQuoteAddressId')
             ->with(22)->willReturn($this->createQuoteAddressExtended([]));
-        $this->extendedDataCopier->method('copyQuoteAddressValues')->willReturn(false);
+        $this->extendedDataCopier->method('copyOrderToQuoteAddressValues')->willReturn(false);
         $this->quoteAddressExtendedRepository->expects($this->never())->method('save');
 
         $this->createPlugin()->afterInitFromOrder(
@@ -121,7 +121,7 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
         $this->quoteAddressExtendedRepository->method('getByOrderAddress')
             ->willReturn($this->createQuoteAddressExtended(['entity_id' => 1, 'quote_address_id' => 11]));
         $this->quoteAddressExtendedRepository->method('getOrCreateByQuoteAddressId')->willReturn($target);
-        $this->extendedDataCopier->method('copyQuoteAddressValues')->willReturn(false);
+        $this->extendedDataCopier->method('copyOrderToQuoteAddressValues')->willReturn(false);
         $this->quoteAddressExtendedRepository->expects($this->never())->method('save');
 
         $this->createPlugin()->afterInitFromOrder(
@@ -139,7 +139,7 @@ class CopyQuoteAddressExtendedOnInitFromOrderTest extends TestCase
             ->willReturn($this->createQuoteAddressExtended(['entity_id' => 1, 'quote_address_id' => 11]));
         $this->quoteAddressExtendedRepository->method('getOrCreateByQuoteAddressId')
             ->willReturn($this->createQuoteAddressExtended([]));
-        $this->extendedDataCopier->method('copyQuoteAddressValues')->willReturn(true);
+        $this->extendedDataCopier->method('copyOrderToQuoteAddressValues')->willReturn(true);
         $this->quoteAddressExtendedRepository->method('save')
             ->willThrowException(new CouldNotSaveException(__('Failure')));
         $this->logger->expects($this->once())->method('error')->with(
