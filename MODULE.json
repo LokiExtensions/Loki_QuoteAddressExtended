@@ -19,6 +19,7 @@
         "Magento_Directory",
         "Magento_Eav",
         "Magento_Indexer",
+        "Magento_MediaGalleryUiApi",
         "Magento_Newsletter",
         "Magento_Payment",
         "Magento_Quote",
@@ -39,8 +40,8 @@
     ],
     "config": [],
     "tests": {
-        "unit": 231,
-        "integration": 98,
+        "unit": 199,
+        "integration": 96,
         "functional": 8
     },
     "module_name": "Loki_QuoteAddressExtended",
